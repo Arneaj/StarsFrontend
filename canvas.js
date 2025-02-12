@@ -287,17 +287,30 @@ function getMessage(event)
         }
     }
 
+    const infoElement = document.getElementById('info');
+
     if (message === null)
     {
-        infoElement.style.visibility = "hidden";
-        infoElement.style.top = "-100px";
-        infoElement.style.left = "-100px";
+        infoElement.style.animation = "0.2s smooth-disappear ease-out";
+        infoElement.style.opacity = "0";
         return;
     }
     
-    const infoElement = document.getElementById('info');
-    infoElement.innerHTML = message;
+    infoElement.innerHTML = "<b>User</b><br><br>" + message;
     infoElement.style.top = ((1-message_y)*canvas.clientHeight/2) + "px";
     infoElement.style.left = ((message_x+1)*canvas.clientWidth/2 + 20) + "px";
-    infoElement.style.visibility = "visible";
+
+    infoElement.style.animation = "0.2s smooth-appear ease-in";
+    infoElement.style.opacity = "1";
+}
+
+function clickFunction(event)
+{
+    const info_box = document.getElementById('info');
+    const canvas = document.getElementById('stars_canvas');
+
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+
+    if (info_box.style.opacity === "0") return;
 }

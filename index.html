@@ -52,21 +52,47 @@
         background-color: #222831;
       }
 
+      @keyframes smooth-appear {
+        from{
+          opacity: 0;
+        }
+        to{
+          opacity: 1;
+        }
+      }
+
+      @keyframes smooth-disappear {
+        from{
+          opacity: 1;
+        }
+        to{
+          opacity: 0;
+        }
+      }
+
       #info {
-        padding-left: 10px;
-        padding-right: 10px;
+        opacity: 0;
+
+        padding: 1%;
         border-radius: 10px;
+
         position: absolute;
         user-select: none;
-        font-size: 1.5em;
+        font-size: 1em;
+
         width: 10%;
-        color: #EEEEEE;
-        background-color: #FD7013;
+
+        font-family: Helvetica, sans-serif;
+        color: #cfbfced5;
+
+        border-color: #7a667c80;
+        border-style: solid;
+        background-color: #1a04167b;
       }
     </style>
   </head>
   <body>
-    <div onmousemove="getMessage(event)" id="page">
+    <div onmousemove="getMessage(event)" onclick="clickFunction(event)" id="page">
       <div id="info"></div>
 
       <canvas id="stars_canvas">
@@ -84,7 +110,6 @@
     </div>
 
     <script src="canvas.js"></script>
-    <script src="message_box.js"></script>
 
   </body>
 </html>

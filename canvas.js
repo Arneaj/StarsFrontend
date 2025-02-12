@@ -14,7 +14,7 @@ function showError(errorText)
 }
   
 
-function helloTriangle() 
+function starsGraphics() 
 {
     /** @type {HTMLCanvasElement|null} */
     const canvas = document.getElementById('stars_canvas');
@@ -106,12 +106,12 @@ function helloTriangle()
 
     // ----- ATTACH AND LINK PROGRAM -----
   
-    const helloTriangleProgram = gl.createProgram();
-    gl.attachShader(helloTriangleProgram, vertexShader);
-    gl.attachShader(helloTriangleProgram, fragmentShader);
-    gl.linkProgram(helloTriangleProgram);
-    if (!gl.getProgramParameter(helloTriangleProgram, gl.LINK_STATUS)) {
-      const errorMessage = gl.getProgramInfoLog(helloTriangleProgram);
+    const starsGraphicsProgram = gl.createProgram();
+    gl.attachShader(starsGraphicsProgram, vertexShader);
+    gl.attachShader(starsGraphicsProgram, fragmentShader);
+    gl.linkProgram(starsGraphicsProgram);
+    if (!gl.getProgramParameter(starsGraphicsProgram, gl.LINK_STATUS)) {
+      const errorMessage = gl.getProgramInfoLog(starsGraphicsProgram);
       showError(`Failed to link GPU program: ${errorMessage}`);
       return;
     }
@@ -158,15 +158,15 @@ function helloTriangle()
 
     // ----- FIND ATTRIBUTE AND UNIFORM LOCATIONS FOR FUTURE MODIFICATION -----
 
-    const starUniformLocation = gl.getUniformLocation(helloTriangleProgram, "star_positions");
-    const timeUniformLocation = gl.getUniformLocation(helloTriangleProgram, "current_time");
-    const starNumberUniformLocation = gl.getUniformLocation(helloTriangleProgram, "nb_stars");
+    const starUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "star_positions");
+    const timeUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "current_time");
+    const starNumberUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "nb_stars");
 
-    const heightByWidthUniformLocation = gl.getUniformLocation(helloTriangleProgram, "canvas_height_by_width");
+    const heightByWidthUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "canvas_height_by_width");
 
-    const cursorUniformLocation = gl.getUniformLocation(helloTriangleProgram, "cursor_position");
+    const cursorUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "cursor_position");
 
-    const vertexPositionAttributeLocation = gl.getAttribLocation(helloTriangleProgram, 'vertexPosition');
+    const vertexPositionAttributeLocation = gl.getAttribLocation(starsGraphicsProgram, 'vertexPosition');
 
 
     if (vertexPositionAttributeLocation < 0) {
@@ -206,7 +206,7 @@ function helloTriangle()
         const currentTime = performance.now() / 1000;
     
         // Update the uniform
-        gl.useProgram(helloTriangleProgram);
+        gl.useProgram(starsGraphicsProgram);
         gl.enableVertexAttribArray(vertexPositionAttributeLocation);
       
         // Input assembler (how to read vertex information from buffers?)
@@ -250,7 +250,7 @@ function helloTriangle()
 }
   
 try {
-    helloTriangle();
+    starsGraphics();
 } catch (e) {
     showError(`Uncaught JavaScript exception: ${e}`);
 }

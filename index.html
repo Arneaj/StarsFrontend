@@ -14,9 +14,10 @@
         margin: 0;
         padding: 0px;
         background-color: #2a2a2a;
+        overflow: hidden;
       }
 
-      #demo-canvas {
+      #stars_canvas {
         width: 100%;
         height: 100%;
 
@@ -44,13 +45,35 @@
         color: #eee;
         border-bottom: 1px solid gray;
       }
+
+      #page {
+        height: 100%;
+        width: 100%;
+        background-color: #222831;
+      }
+
+      #info {
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 10px;
+        position: absolute;
+        user-select: none;
+        font-size: 1.5em;
+        width: 10%;
+        color: #EEEEEE;
+        background-color: #FD7013;
+      }
     </style>
   </head>
   <body>
-    <canvas id="demo-canvas">
-      <!-- This message shows up only if the Canvas element isn't supported -->
-      HTML5 canvas not supported in your browser! These demos will not work.
-    </canvas>
+    <div onmousemove="getMessage(event)" id="page">
+      <div id="info"></div>
+
+      <canvas id="stars_canvas">
+        <!-- This message shows up only if the Canvas element isn't supported -->
+        HTML5 canvas not supported in your browser! These demos will not work.
+      </canvas>
+    </div>
 
     <!--
       Doing a little error output in the HTML is nice when testing on mobile,
@@ -59,6 +82,9 @@
     <div id="error-box">
       <span class="error-box-title">Error messages, if any, go in here.</span>
     </div>
+
     <script src="canvas.js"></script>
+    <script src="message_box.js"></script>
+
   </body>
 </html>

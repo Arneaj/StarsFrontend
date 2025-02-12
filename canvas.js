@@ -1,16 +1,23 @@
+const starPositions = [];
+const starMessages = [];
+var nb_stars;
+
+
 /** Helper method to output an error message to the screen */
-function showError(errorText) {
+function showError(errorText) 
+{
     const errorBoxDiv = document.getElementById('error-box');
     const errorSpan = document.createElement('p');
     errorSpan.innerText = errorText;
     errorBoxDiv.appendChild(errorSpan);
     console.error(errorText);
-  }
+}
   
-  function helloTriangle() 
-  {
+
+function helloTriangle() 
+{
     /** @type {HTMLCanvasElement|null} */
-    const canvas = document.getElementById('demo-canvas');
+    const canvas = document.getElementById('stars_canvas');
     if (!canvas) {
         showError('Could not find HTML canvas element - check for typos, or loading JavaScript file too early');
         return;
@@ -32,12 +39,12 @@ function showError(errorText) {
     precision mediump float;
 
     in vec2 vertexPosition;
-    out vec3 position;
+    out vec2 position;
   
     void main() {
         gl_Position = vec4(vertexPosition, 0.0, 1.0);
 
-        position = vec3(vertexPosition, 0.0);
+        position = vertexPosition;
     }
     `;
   
@@ -58,32 +65,32 @@ function showError(errorText) {
     uniform float canvas_height_by_width;
 
     uniform int nb_stars;
-    uniform vec3 star_positions[1000];
+    uniform vec2 star_positions[1000];
 
     uniform float current_time;
 
     uniform vec2 cursor_position;
 
-    in vec3 position;
+    in vec2 position;
     
     out vec4 outputColor;
   
     void main() {
         vec2 uv_cursor_position = cursor_position * vec2(1.0, canvas_height_by_width);
-        vec3 uv_position = position * vec3(1.0, canvas_height_by_width, 1.0);
+        vec2 uv_position = position * vec2(1.0, canvas_height_by_width);
 
         float d[4];
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
         for (int i=0; i<nb_stars; i++)
         {
-            vec3 uv_star_position = star_positions[i] * vec3(1.0, canvas_height_by_width, 1.0);
+            vec2 uv_star_position = star_positions[i] * vec2(1.0, canvas_height_by_width);
 
             d[i] = distance(uv_position, uv_star_position);
             outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(1000.0*d[i], 1.8);
         }
 
-        float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position.xy));
+        float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position));
 
         outputColor.xyz /= max(0.3, pow(5.0*d_from_cursor, 1.0));
     }`;
@@ -137,21 +144,17 @@ function showError(errorText) {
         0.4, 0.3, 0.0
     ];
     */
-    const starPositions = [];
 
     for (var i=0; i<300; i++)
     {
-        if ((i+1)%3==0) 
-        {
-            starPositions.push(0.0);
-            continue;
-        }
         starPositions.push(2*Math.random()-1.0);
+
+        if (i%2==0) starMessages.push("Hello there, I'm star " + i/2 + "!");
     }
 
     const starPositionsCPUBuffer = new Float32Array(starPositions);
 
-    const nb_stars = starPositions.length / 3;
+    nb_stars = starPositions.length / 2;
 
     // ----- FIND ATTRIBUTE AND UNIFORM LOCATIONS FOR FUTURE MODIFICATION -----
 
@@ -230,7 +233,7 @@ function showError(errorText) {
         gl.uniform1f(timeUniformLocation, currentTime);
 
         gl.uniform1i(starNumberUniformLocation, nb_stars);
-        gl.uniform3fv(starUniformLocation, starPositionsCPUBuffer); 
+        gl.uniform2fv(starUniformLocation, starPositionsCPUBuffer); 
     
         // Render your scene
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -244,10 +247,57 @@ function showError(errorText) {
     
     // Start the rendering loop
     requestAnimationFrame(render);
-  }
+}
   
-  try {
+try {
     helloTriangle();
-  } catch (e) {
+} catch (e) {
     showError(`Uncaught JavaScript exception: ${e}`);
-  }
+}
+
+let last_check = 0;
+const throttle_delay = 100; // milliseconds
+
+function getMessage(event) 
+{
+    let now = Date.now(); 
+    if (now - last_check <= throttle_delay) return;
+
+    last_check = now;
+
+    const canvas = document.getElementById('stars_canvas');
+
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+
+    let message = null;
+    let message_x;
+    let message_y;
+
+    for (var i=0; i<nb_stars; i++)
+    {
+        const d_i_sq = (x-starPositions[2*i])**2 + (y-starPositions[2*i+1])**2
+
+        if (d_i_sq < 0.0003)
+        {
+            message = starMessages[i];
+            message_x = starPositions[2*i];
+            message_y = starPositions[2*i+1];
+            break;
+        }
+    }
+
+    if (message === null)
+    {
+        infoElement.style.visibility = "hidden";
+        infoElement.style.top = "-100px";
+        infoElement.style.left = "-100px";
+        return;
+    }
+    
+    const infoElement = document.getElementById('info');
+    infoElement.innerHTML = message;
+    infoElement.style.top = ((1-message_y)*canvas.clientHeight/2) + "px";
+    infoElement.style.left = ((message_x+1)*canvas.clientWidth/2 + 20) + "px";
+    infoElement.style.visibility = "visible";
+}

@@ -87,7 +87,7 @@ function helloTriangle()
             vec2 uv_star_position = star_positions[i] * vec2(1.0, canvas_height_by_width);
 
             d[i] = distance(uv_position, uv_star_position);
-            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(1000.0*d[i], 1.8);
+            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(500.0*d[i], 1.8);
         }
 
         float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position));
@@ -293,12 +293,14 @@ function getMessage(event)
     {
         infoElement.style.animation = "0.2s smooth-disappear ease-out";
         infoElement.style.opacity = "0";
+        infoElement.style.width = "10%";
         return;
     }
     
     infoElement.innerHTML = "<b>User</b><br><br>" + message;
     infoElement.style.top = ((1-message_y)*canvas.clientHeight/2) + "px";
     infoElement.style.left = ((message_x+1)*canvas.clientWidth/2 + 20) + "px";
+    infoElement.style.width = "10%";
 
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";
@@ -312,5 +314,14 @@ function clickFunction(event)
     let x = 2*event.clientX / canvas.clientWidth - 1;
     let y = 1 - 2*event.clientY / canvas.clientHeight;
 
+    let text = info_box.innerHTML
+
+    if ( text.includes("Like") ) return;
+
     if (info_box.style.opacity === "0") return;
+
+    info_box.style.top = "30%";
+    info_box.style.left = "30%";
+    info_box.style.width = "40%";
+    info_box.innerHTML += "<br><br><button>Like</button><button>Dislike</button>"
 }

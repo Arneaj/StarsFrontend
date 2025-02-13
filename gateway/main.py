@@ -43,6 +43,15 @@ async def delete_star(star_id: int):
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
     return resp.json()
 
+# NB!!! This is dangerous. Only for admins TODO
+@app.delete("/stars")
+async def delete_all_stars():
+    async with httpx.AsyncClient() as client:
+        resp = await client.delete(f"{DATABASE_SERVICE_URL}/stars")
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail=resp.text)
+    return resp.json()
+
 @app.get("/stars/stream")
 async def stream_stars(request: Request):
     """

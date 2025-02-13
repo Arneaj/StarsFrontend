@@ -12,6 +12,9 @@ const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
  *  In a 3-tier setup, the front-end calls the GATEWAY at :8000,
  *  and the gateway forwards to the DB service at :5000.
  ***************************************************************************/
+
+// Should these be global variables? starPositionsCPUBuffer must be referenced by multiple functions.
+// Up to you Arnaud! 
 const BACKEND_URL = "http://127.0.0.1:8000";
 let starPositionsCPUBuffer = new Float32Array(starPositions);
 
@@ -449,7 +452,8 @@ async function fetchInitialStars() {
 function addRandomStar() {
     const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
     const ry = (Math.random() * 2 - 1).toFixed(2);
-    const msg = "Random Star!";
+    // Message with star ID
+    const msg = `Random star! Random number: ${Math.floor(Math.random() * 1000)}`;
     createStar(Number(rx), Number(ry), msg);
 }
 
@@ -483,5 +487,32 @@ async function removeStarByID(starId) {
         }
     } catch (e) {
         console.error("Error removing star ID=" + starId, e);
+    }
+}
+
+/***********************************************************************
+ * 4) Clear all stars # NB!!! This is dangerous. Only for admins TODO
+ ***********************************************************************/
+async function removeAllStars() {
+    try {
+        const resp = await fetch(`${BACKEND_URL}/stars`, {
+            method: "DELETE"
+        });
+        if (!resp.ok) {
+            console.error("Failed to clear all stars:", resp.status, await resp.text());
+            return;
+        }
+
+        // Clear frontend state
+        starPositions.length = 0;
+        starMessages.length = 0;
+        nb_stars = 0;
+
+        // Update the CPU buffer
+        starPositionsCPUBuffer = new Float32Array(starPositions);
+
+        console.log("Removed all stars");
+    } catch (e) {
+        console.error("Error clearing all stars:", e);
     }
 }

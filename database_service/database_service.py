@@ -137,6 +137,22 @@ def remove_star(star_id: int, db: Session = Depends(get_db)):
         "message": star_to_remove.message
     }
 
+# NB!!! This is dangerous. Only for admins TODO
+@app.delete("/stars")
+def remove_all_stars(db: Session = Depends(get_db)):
+    """
+    Remove all stars from the DB.
+    """
+    db.query(StarDB).delete()
+    db.commit()
+
+    # Push SSE event
+    star_event_queue.put_nowait({
+        "event": "remove_all"
+    })
+
+    return {"message": "All stars removed"}
+
 
 @app.get("/stars/stream")
 async def stream_stars(request: Request):

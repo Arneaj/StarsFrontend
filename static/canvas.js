@@ -13,6 +13,7 @@ const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
  *  and the gateway forwards to the DB service at :5000.
  ***************************************************************************/
 const BACKEND_URL = "http://127.0.0.1:8000";
+let starPositionsCPUBuffer = new Float32Array(starPositions);
 
 /***************************************************************************
  * Your StarStreamManager, but updated to talk to the gateway
@@ -96,6 +97,9 @@ class StarStreamManager {
             default:
                 console.warn('Unknown star update event:', starUpdate.event);
         }
+
+        // Update the starPositionsCPUBuffer
+        starPositionsCPUBuffer = new Float32Array(starPositions);
     }
 
     addStar(star) {
@@ -107,10 +111,13 @@ class StarStreamManager {
                 return;
             }
         }
-
+    
         starPositions.push(star.x, star.y);
         starMessages.push(star.message);
         nb_stars = starPositions.length / 2;
+    
+        // Update the CPU buffer
+        starPositionsCPUBuffer = new Float32Array(starPositions);
     }
 
     removeStar(star) {
@@ -120,6 +127,9 @@ class StarStreamManager {
                 starPositions.splice(2 * i, 2);
                 starMessages.splice(i, 1);
                 nb_stars = starPositions.length / 2;
+    
+                // Update the CPU buffer
+                starPositionsCPUBuffer = new Float32Array(starPositions);
                 break;
             }
         }
@@ -264,7 +274,7 @@ async function starsGraphics()
     gl.bindBuffer(gl.ARRAY_BUFFER, backgroundQuadBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, backgroundQuadCPUBuffer, gl.STATIC_DRAW);
 
-    const starPositionsCPUBuffer = new Float32Array(starPositions);
+    // const starPositionsCPUBuffer = new Float32Array(starPositions);
     nb_stars = starPositions.length / 2;
 
     const starUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "star_positions");
@@ -306,7 +316,7 @@ async function starsGraphics()
         const currentTime = performance.now() / 1000;
         gl.useProgram(starsGraphicsProgram);
         gl.enableVertexAttribArray(vertexPositionAttributeLocation);
-
+    
         gl.bindBuffer(gl.ARRAY_BUFFER, backgroundQuadBuffer);
         gl.vertexAttribPointer(
             vertexPositionAttributeLocation, 
@@ -316,18 +326,18 @@ async function starsGraphics()
             2 * Float32Array.BYTES_PER_ELEMENT,
             0
         );
-
+    
         gl.uniform1f(heightByWidthUniformLocation, canvas.clientHeight / canvas.clientWidth);
         gl.uniform2f(cursorUniformLocation, 
-                     2*cursor_current_X/canvas.clientWidth-1, 
-                     1-2*cursor_current_Y/canvas.clientHeight);
+                     2 * cursor_current_X / canvas.clientWidth - 1, 
+                     1 - 2 * cursor_current_Y / canvas.clientHeight);
         gl.uniform1f(timeUniformLocation, currentTime);
         gl.uniform1i(starNumberUniformLocation, nb_stars);
-        gl.uniform2fv(starUniformLocation, starPositionsCPUBuffer);
-
+        gl.uniform2fv(starUniformLocation, starPositionsCPUBuffer); // Use the updated buffer
+    
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
+    
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
@@ -408,22 +418,26 @@ function clickFunction(event) {
 
 async function fetchInitialStars() {
     try {
-      const resp = await fetch(`${BACKEND_URL}/stars`);
-      if (!resp.ok) {
-        console.error("Failed to fetch initial stars:", resp.status, await resp.text());
-        return;
-      }
-      const stars = await resp.json(); // an array of {id, x, y, message}
-      for (const s of stars) {
-        starPositions.push(s.x, s.y);
-        starMessages.push(s.message);
-      }
-      nb_stars = starPositions.length / 2;
-      console.log("Loaded", nb_stars, "stars initially");
+        const resp = await fetch(`${BACKEND_URL}/stars`);
+        if (!resp.ok) {
+            console.error("Failed to fetch initial stars:", resp.status, await resp.text());
+            return;
+        }
+        const stars = await resp.json(); // an array of {id, x, y, message}
+        for (const s of stars) {
+            starPositions.push(s.x, s.y);
+            starMessages.push(s.message);
+        }
+        nb_stars = starPositions.length / 2;
+
+        // Update the CPU buffer
+        starPositionsCPUBuffer = new Float32Array(starPositions);
+
+        console.log("Loaded", nb_stars, "stars initially");
     } catch (err) {
-      console.error("Error fetching initial stars:", err);
+        console.error("Error fetching initial stars:", err);
     }
-  }
+}
 
 
 

@@ -2,6 +2,13 @@ const starPositions = [];
 const starMessages = [];
 var nb_stars;
 
+var x_min = 5000;
+var y_min = 5000;
+
+var zoom = 10.0;
+
+const total_map_pixels = 10000;
+
 
 /** Helper method to output an error message to the screen */
 function showError(errorText) 
@@ -62,7 +69,12 @@ function starsGraphics()
     const fragmentShaderSourceCode = `#version 300 es
     precision mediump float;
 
-    uniform float canvas_height_by_width;
+    uniform float x_min;
+    uniform float x_max_minus_x_min;
+    uniform float y_min;
+    uniform float y_max_minus_y_min;
+
+    uniform float zoom;
 
     uniform int nb_stars;
     uniform vec2 star_positions[1000];
@@ -76,23 +88,25 @@ function starsGraphics()
     out vec4 outputColor;
   
     void main() {
-        vec2 uv_cursor_position = cursor_position * vec2(1.0, canvas_height_by_width);
-        vec2 uv_position = position * vec2(1.0, canvas_height_by_width);
+        vec2 uv_cursor_position = (cursor_position+1.0)*0.5;
+        uv_cursor_position = vec2(x_min, y_min) + zoom*uv_cursor_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
+        vec2 uv_position = (position+1.0)*0.5;
+        uv_position = vec2(x_min, y_min) + zoom*uv_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
 
         float d[4];
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
         for (int i=0; i<nb_stars; i++)
         {
-            vec2 uv_star_position = star_positions[i] * vec2(1.0, canvas_height_by_width);
+            vec2 uv_star_position = star_positions[i]; 
 
             d[i] = distance(uv_position, uv_star_position);
-            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(500.0*d[i], 1.8);
+            outputColor += (1.0 + 0.3*sin(10.0*current_time)) * zoom * vec4(1.0, 0.9, 0.7, 1.0) / pow(500.0*d[i], 1.8);
         }
 
-        float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position));
+        float d_from_cursor = max(0.05, distance(uv_cursor_position, uv_position));
 
-        outputColor.xyz /= max(0.3, pow(5.0*d_from_cursor, 1.0));
+        outputColor.xyz /= max(0.5, pow(30.0*d_from_cursor, 1.0));
     }`;
   
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -162,7 +176,12 @@ function starsGraphics()
     const timeUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "current_time");
     const starNumberUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "nb_stars");
 
-    const heightByWidthUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "canvas_height_by_width");
+    const xMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "x_min");
+    const xMaxMinusXMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "x_max_minus_x_min");
+    const yMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "y_min");
+    const yMaxMinusYMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "y_max_minus_y_min");
+
+    const zoomUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "zoom");
 
     const cursorUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "cursor_position");
 
@@ -226,7 +245,12 @@ function starsGraphics()
             0
         );
 
-        gl.uniform1f(heightByWidthUniformLocation, canvas.clientHeight / canvas.clientWidth);
+        gl.uniform1f(xMinUniformLocation, 2*x_min/total_map_pixels-1);
+        gl.uniform1f(xMaxMinusXMinUniformLocation, canvas.clientWidth/total_map_pixels);
+        gl.uniform1f(yMinUniformLocation, 1-2*y_min/total_map_pixels);
+        gl.uniform1f(yMaxMinusYMinUniformLocation, canvas.clientHeight/total_map_pixels);
+
+        gl.uniform1f(zoomUniformLocation, zoom);
 
         gl.uniform2f(cursorUniformLocation, 2*cursor_current_X/canvas.clientWidth-1, 1-2*cursor_current_Y/canvas.clientHeight)
         
@@ -324,4 +348,20 @@ function clickFunction(event)
     info_box.style.left = "30%";
     info_box.style.width = "40%";
     info_box.innerHTML += "<br><br><button>Like</button><button>Dislike</button>"
+}
+
+function scrollFunction(event)
+{
+    const canvas = document.getElementById('stars_canvas');
+
+    x_min = Math.min(
+        total_map_pixels/2,
+        Math.max(0, x_min + event.deltaX)
+    );
+    y_min = Math.min(
+        total_map_pixels,
+        Math.max(total_map_pixels/2, y_min + event.deltaY)
+    );
+
+    console.log(x_min, y_min);
 }

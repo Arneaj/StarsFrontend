@@ -245,12 +245,12 @@ function starsGraphics()
     ];
     */
 
-    for (var i=0; i<300; i++)
-    {
-        starPositions.push(2*Math.random()-1.0);
+    // for (var i=0; i<300; i++)
+    // {
+    //     starPositions.push(2*Math.random()-1.0);
 
-        if (i%2==0) starMessages.push("Hello there, I'm star " + i/2 + "!");
-    }
+    //     if (i%2==0) starMessages.push("Hello there, I'm star " + i/2 + "!");
+    // }
 
     const starPositionsCPUBuffer = new Float32Array(starPositions);
 

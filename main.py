@@ -57,7 +57,10 @@ async def stream_stars(request: Request, viewport: str = None):
         raise HTTPException(status_code=400, detail="Viewport parameter is required")
     try:
         x_min, x_max, y_min, y_max = map(float, viewport.split(","))
-    except Exception:
+        # Check should this be > or >=?
+        if x_min > x_max or y_min > y_max:
+            raise ValueError("Invalid viewport bounds")
+    except ValueError as e:
         raise HTTPException(
             status_code=400,
             detail="Invalid viewport format. Expected: x_min,x_max,y_min,y_max",
@@ -83,6 +86,19 @@ async def stream_stars(request: Request, viewport: str = None):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+@app.post("/stars")
+async def create_star(star_data: dict):
+    try:
+        star_data = await star_data.json() # Check should use await here
+        x = float(star_data.get('x'))
+        y = float(star_data.get('y'))
+        message = str(star_data.get('message', "This is a new star..."))
+        if not (-1 <= x <= 1 and -1 <= y <= 1):
+            raise HTTPException(status_code=400, detail="Star coordinates must be between -1 and 1")
+        # Add this
+        return add_star(x, y, message).dict() # NEXT need to create way to add stars (add_stars)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid star data format")
 
 if __name__ == "__main__":
     # Run the application using uvicorn.

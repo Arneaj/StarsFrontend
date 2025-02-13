@@ -1,7 +1,7 @@
 # File to handle data storage and updates
 
 import asyncio
-from typing import List
+from typing import List, Optional
 from models import Star, StarUpdate
 
 # In‑memory “database” of stars.
@@ -28,22 +28,20 @@ def add_star(x: float, y: float, message: str) -> Star:
     return star
 
 
-def remove_star(star_id: int):
-    global stars_db
-    star_to_remove = None
-    for star in stars_db:
-        if star.id == star_id:
-            star_to_remove = star
-            break
+def remove_star(star_id: int) -> Optional[Star]:
+    # Using list comprehension for efficiency
+    star_to_remove = next((star for star in stars_db if star.id == star_id), None)
+
     if star_to_remove:
-        stars_db = [star for star in stars_db if star.id != star_id]
+        stars_db.remove(star_to_remove)
+        # stars_db = [star for star in stars_db if star.id != star_id]
         update = StarUpdate(event="remove", star=star_to_remove)
         asyncio.create_task(star_event_queue.put(update))
         return star_to_remove
     return None
 
 
-# For demonstration, we pre-populate the database with some stars.
+# For demonstration, this will pre-populate the database with some stars
 if not stars_db:
     import random
     for i in range(150):

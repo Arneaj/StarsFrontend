@@ -37,18 +37,37 @@
       @keyframes smooth-disappear {
         from { opacity: 1; } to { opacity: 0; }
       }
+
+      /* ADD: A simple "controls" panel always visible for debugging */
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        color: #fff;
+      }
+      #controls button {
+        margin-right: 10px;
+      }
     </style>
   </head>
   <body onmousemove="getMessage(event)" onclick="clickFunction(event)">
-    <canvas id="stars_canvas"></canvas>
-    <div id="info">
-      <button onclick="createStar(0.2, 0.8, 'Hello Star!')">Create Star</button>
+    
+    <!-- The controls panel with Add/Remove buttons -->
+    <div id="controls">
+      <button onclick="addRandomStar()">Add Random Star</button>
+      <button onclick="removeStarByIDPrompt()">Remove Star By ID</button>
     </div>
+
+    <canvas id="stars_canvas"></canvas>
+
+    <div id="info"></div>
     <div id="error-box">
       <span class="error-box-title">Error messages, if any, go here.</span>
     </div>
 
-    <!-- Use your existing canvas.js with all the WebGL logic -->
     <script src="canvas.js"></script>
   </body>
 </html>

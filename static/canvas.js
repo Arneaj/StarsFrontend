@@ -398,6 +398,14 @@ function clickFunction(event) {
     info_box.innerHTML += "<br><br><button>Like</button><button>Dislike</button>";
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////
+// Mark code starts here.
+// This fetches the initial stars on page load.
+////////////////////////////////////////////////////////////////////
+
 async function fetchInitialStars() {
     try {
       const resp = await fetch(`${BACKEND_URL}/stars`);
@@ -416,4 +424,50 @@ async function fetchInitialStars() {
       console.error("Error fetching initial stars:", err);
     }
   }
-  
+
+
+
+// Debug buttons to add/remove stars.
+
+/***********************************************************************
+ * 1) Create a random star at random X/Y
+ ***********************************************************************/
+function addRandomStar() {
+    const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
+    const ry = (Math.random() * 2 - 1).toFixed(2);
+    const msg = "Random Star!";
+    createStar(Number(rx), Number(ry), msg);
+}
+
+/***********************************************************************
+ * 2) Remove a star by ID (we'll show a prompt for testing)
+ ***********************************************************************/
+function removeStarByIDPrompt() {
+    const idStr = prompt("Enter the star ID to remove:");
+    if (!idStr) return;
+    const starID = parseInt(idStr, 10);
+    if (!Number.isFinite(starID)) {
+        console.error("Invalid ID:", idStr);
+        return;
+    }
+    removeStarByID(starID);
+}
+
+/***********************************************************************
+ * 3) Actually call the backend to remove a star by ID
+ ***********************************************************************/
+async function removeStarByID(starId) {
+    try {
+        const resp = await fetch(`${BACKEND_URL}/stars/${starId}`, {
+            method: "DELETE"
+        });
+        if (!resp.ok) {
+            console.error("Failed to remove star ID=" + starId, resp.status, await resp.text());
+        } else {
+            const removed = await resp.json();
+            console.log("Removed star:", removed);
+        }
+    } catch (e) {
+        console.error("Error removing star ID=" + starId, e);
+    }
+}

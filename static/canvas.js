@@ -1,6 +1,102 @@
 const starPositions = [];
 const starMessages = [];
-var nb_stars;
+var nb_stars; // =0 ?? Arni pls check :)
+
+// ---- For SSE Connection ----
+class StarStreamManager {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.eventSource = null;
+        this.setupSSE();
+    }
+
+    getViewport() {
+        const aspect = this.canvas.clientHeight / this.canvas.clientWidth;
+        return `-1,1,${-aspect},${aspect}`;
+    }
+
+    setupSSE() {
+        if (this.eventSource) {
+            this.eventSource.close();
+        }
+
+        const viewport = this.getViewport();
+        this.eventSource = new EventSource(`/stars/stream?viewport=${viewport}`);
+        
+        this.eventSource.onmessage = (event) => {
+            try {
+                const starUpdate = JSON.parse(event.data);
+                this.handleStarUpdate(starUpdate);
+            } catch (error) {
+                console.error('Error processing star update:', error);
+            }
+        };
+
+        this.eventSource.onerror = (error) => {
+            console.error('SSE connection error:', error);
+            this.eventSource.close();
+            // Attempt to reconnect after timeout
+            setTimeout(() => this.setupSSE(), RECONNECTION_TIMEOUT);
+        };
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (this.eventSource) {
+                this.eventSource.close();
+            }
+        });
+    }
+
+    handleStarUpdate(starUpdate) {
+        if (!starUpdate.star || typeof starUpdate.star.x !== 'number' || 
+            typeof starUpdate.star.y !== 'number' || !starUpdate.star.message) {
+            console.error('Invalid star data received:', starUpdate);
+            return;
+        }
+
+        switch (starUpdate.event) {
+            case 'add':
+                if (nb_stars >= MAX_STARS) {
+                    console.warn('Maximum star limit reached');
+                    return;
+                }
+                this.addStar(starUpdate.star);
+                break;
+            case 'remove':
+                this.removeStar(starUpdate.star);
+                break;
+            default:
+                console.warn('Unknown star update event:', starUpdate.event);
+        }
+    }
+
+    addStar(star) {
+        // Check for duplicates
+        for (let i = 0; i < nb_stars; i++) {
+            if (starPositions[2 * i] === star.x && 
+                starPositions[2 * i + 1] === star.y) {
+                console.warn('Duplicate star position detected');
+                return;
+            }
+        }
+
+        starPositions.push(star.x, star.y);
+        starMessages.push(star.message);
+        nb_stars = starPositions.length / 2;
+    }
+
+    removeStar(star) {
+        for (let i = nb_stars - 1; i >= 0; i--) {
+            if (starPositions[2 * i] === star.x && 
+                starPositions[2 * i + 1] === star.y) {
+                starPositions.splice(2 * i, 2);
+                starMessages.splice(i, 1);
+                nb_stars = starPositions.length / 2;
+                break;
+            }
+        }
+    }
+}
 
 
 /** Helper method to output an error message to the screen */
@@ -22,6 +118,10 @@ function starsGraphics()
         showError('Could not find HTML canvas element - check for typos, or loading JavaScript file too early');
         return;
     }
+
+    // Reference not used right now - should we restructure and make the stars app a class and encapsulate all functionality into it?
+    const starStream = new StarStreamManager(canvas);
+
     const gl = canvas.getContext('webgl2');
     if (!gl) {
         const isWebGl1Supported = !!(document.createElement('canvas')).getContext('webgl');
@@ -305,6 +405,7 @@ function getMessage(event)
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";
 }
+
 
 function clickFunction(event)
 {

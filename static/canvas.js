@@ -402,9 +402,21 @@ var mouseHoldTimeout = null;
 var mouseDownDone = false;
 
 function mouseDown() {
+    if (a_box_is_open) return;
+
     mouseHoldTimeout = setTimeout(() => {
         mouseDownDone = true;
     }, 500);
+}
+
+function mouseDownAndMove(event) {
+    if (a_box_is_open) return;
+    if (!mouseDownDone && !mouseHoldTimeout) return;
+
+    const canvas = document.getElementById('stars_canvas');
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+    console.log(x, y);
 }
 
 function clickFunction(event) {

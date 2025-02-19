@@ -404,7 +404,7 @@ var mouseDownDone = false;
 function mouseDown() {
     mouseHoldTimeout = setTimeout(() => {
         mouseDownDone = true;
-    }, 300);
+    }, 500);
 }
 
 function clickFunction(event) {
@@ -433,8 +433,8 @@ function clickFunction(event) {
 
     if (initial_opacity === "0") 
     {
-        last_clicked_x = 2*event.clientX / canvas.clientWidth - 1;
-        last_clicked_y = 1 - 2*event.clientY / canvas.clientHeight;
+        last_clicked_x = x;
+        last_clicked_y = y;
 
         info_box.innerHTML = "<b>Add a star</b><br><br>"
         info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`

@@ -43,24 +43,10 @@ class StarStreamManager {
             this.eventSource.close();
         }
 
-        const viewport = this.getViewport();
-        /***************************************************************
-         * <<<=== CHANGED:
-         * Instead of "/stars/stream?viewport=..." we do:
-         *   `${BACKEND_URL}/stars/stream?viewport=...`
-         ***************************************************************/
-        this.eventSource = new EventSource(
-            `${BACKEND_URL}/stars/stream?viewport=${viewport}`
-        );
-        
+        this.eventSource = new EventSource(`${BACKEND_URL}/stars/stream`);
+
         this.eventSource.onmessage = (event) => {
             try {
-                /************************************************************
-                 * The DB microservice sends events as Python dict strings,
-                 * e.g. {"event": "add", "star": {...}}
-                 * Sometimes it might be `'event': 'add'` with single quotes.
-                 * So we might do a naive replace to parse:
-                 ************************************************************/
                 const dataStr = event.data.replace(/'/g, '"');
                 const starUpdate = JSON.parse(dataStr);
                 this.handleStarUpdate(starUpdate);
@@ -72,11 +58,9 @@ class StarStreamManager {
         this.eventSource.onerror = (error) => {
             console.error('SSE connection error:', error);
             this.eventSource.close();
-            // Attempt to reconnect after timeout
             setTimeout(() => this.setupSSE(), RECONNECTION_TIMEOUT);
         };
 
-        // Clean up on page unload
         window.addEventListener('beforeunload', () => {
             if (this.eventSource) {
                 this.eventSource.close();
@@ -84,26 +68,28 @@ class StarStreamManager {
         });
     }
 
-    handleStarUpdate(starUpdate) {
+    async handleStarUpdate(starUpdate) {
         if (!starUpdate.star || typeof starUpdate.star.x !== 'number' || 
-            typeof starUpdate.star.y !== 'number' || !starUpdate.star.message) {
+            typeof starUpdate.star.y !== 'number' || !starUpdate.star.id) {
             console.error('Invalid star data received:', starUpdate);
             return;
         }
 
-        switch (starUpdate.event) {
-            case 'add':
-                if (nb_stars >= MAX_STARS) {
-                    console.warn('Maximum star limit reached');
-                    return;
+        if (starUpdate.event === 'add') {
+            const { id, x, y } = starUpdate.star;
+            // Check if the star is within the current viewport.
+            const bounds = this.getViewportBounds();
+            if (x >= bounds.left && x <= bounds.right && y >= bounds.bottom && y <= bounds.top) {
+                // Fetch full star details (including the message)
+                const fullStar = await fetchStarDetails(id);
+                if (fullStar) {
+                    this.addStar(fullStar);
                 }
-                this.addStar(starUpdate.star);
-                break;
-            case 'remove':
-                this.removeStar(starUpdate.star);
-                break;
-            default:
-                console.warn('Unknown star update event:', starUpdate.event);
+            }
+        } else if (starUpdate.event === 'remove') {
+            this.removeStar(starUpdate.star);
+        } else {
+            console.warn('Unknown star update event:', starUpdate.event);
         }
 
         // Update the starPositionsCPUBuffer
@@ -584,5 +570,22 @@ async function removeAllStars() {
         console.log("Removed all stars");
     } catch (e) {
         console.error("Error clearing all stars:", e);
+    }
+}
+
+/***********************************************************************
+ * Helper function to fetch star details by ID
+ ***********************************************************************/
+async function fetchStarDetails(starId) {
+    try {
+        const response = await fetch(`${BACKEND_URL}/stars/${starId}`);
+        if (!response.ok) {
+            console.error("Failed to fetch star details:", response.status, await response.text());
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching star details:", error);
+        return null;
     }
 }

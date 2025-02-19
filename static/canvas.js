@@ -398,7 +398,24 @@ function getMessage(event) {
 let last_clicked_x = 0;
 let last_clicked_y = 0;
 
+var mouseHoldTimeout = null;
+var mouseDownDone = false;
+
+function mouseDown() {
+    mouseHoldTimeout = setTimeout(() => {
+        mouseDownDone = true;
+    }, 300);
+}
+
 function clickFunction(event) {
+    if (mouseHoldTimeout) {
+        clearTimeout(mouseHoldTimeout);
+        mouseHoldTimeout = null;
+    }
+    if (mouseDownDone) {
+        mouseDownDone = false;
+        return;
+    }
     if (a_box_is_open) return;
     a_box_is_open = true;
 

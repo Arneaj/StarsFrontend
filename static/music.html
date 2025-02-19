@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambient Chord Demo</title>
+</head>
+<body>
+    <h1>Ambient Chord Demo</h1>
+    <button onclick="startDrone()">Start Drone</button>
+    <button onclick="stopDrone()">Stop Drone</button>
+    <button onclick="addOctaveNote()">Add Octave Note</button>
+    <button onclick="removeOctaveNote()">Remove Octave Note</button>
+   
+    <script>
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillators = [];
+
+        // C Lydian Mode (C, D, E, F#, G, A, B)
+        let baseFrequencies = [261.63, 293.66, 329.63, 370, 392, 440, 493.88];
+        
+        // C Mixolydian (Major with flat 7th) - alternative sound, pick one mode ONLY
+        // let baseFrequencies = [261.63, 293.66, 329.63, 349.23, 392, 440, 466.16]; //
+        
+        let octaveOscillators = [];
+        let addInterval, dropInterval;
+
+        function fadeOutAndStop(oscObj, duration = 1) {
+            const now = audioContext.currentTime;
+            const currentGain = oscObj.gainNode.gain.value;
+            
+            // Start from current gain value to avoid jumps
+            oscObj.gainNode.gain.setValueAtTime(currentGain, now);
+            
+            // Use exponential ramp for more natural fade 
+            // (exponential ramp can't reach 0, so very small value needed instead)
+            oscObj.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            
+            // Oscillator stops after fade with a small buffer after fade completes
+            setTimeout(() => {
+                oscObj.oscillator.stop();
+            }, (duration * 1000) + 50);
+        }
+
+        function startDrone() {
+            if (oscillators.length > 0) return; // Prevent multiple drones
+            for (let i = 0; i < 4; i++) {
+                addRandomNote(); // Start with 4 random notes
+            }
+            addInterval = setInterval(addRandomNote, 4000); // Add a note every 4 seconds
+            dropInterval = setInterval(dropNote, 4000); // Drop a note every 4 seconds
+        }
+
+        function stopDrone() {
+            clearInterval(addInterval);
+            clearInterval(dropInterval);
+
+            // Stagger the fade-outs slightly for a more natural ending
+            oscillators.forEach((osc, index) => {
+                const staggeredDelay = index * 0.1;
+                setTimeout(() => fadeOutAndStop(osc, 1.5), staggeredDelay * 1000);
+            });
+            
+            octaveOscillators.forEach((osc, index) => {
+                const staggeredDelay = index * 0.1;
+                setTimeout(() => fadeOutAndStop(osc, 1.5), staggeredDelay * 1000);
+            });
+            
+            // Clear arrays after all fades complete
+            setTimeout(() => {
+                oscillators = [];
+                octaveOscillators = [];
+            }, 2000);
+        }
+
+        function addRandomNote() {
+        if (oscillators.length >= baseFrequencies.length) return;
+        let freq = baseFrequencies[Math.floor(Math.random() * baseFrequencies.length)];
+        let osc = audioContext.createOscillator();
+        let gainNode = audioContext.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime); // Start at near-zero for exponential ramp
+        gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 1); // Exponential fade in
+
+        osc.connect(gainNode).connect(audioContext.destination);
+        osc.start();
+
+        oscillators.push({
+            oscillator: osc,
+            gainNode: gainNode,
+            frequency: freq,
+            addedAt: audioContext.currentTime
+        });
+    }
+
+        function dropNote() {
+            if (oscillators.length === 0) return;
+
+            let now = audioContext.currentTime;
+
+            // Filter out notes that are too new (less than 2 seconds old)
+            let removableNotes = oscillators.filter(osc => now - osc.addedAt > 2);
+           
+            if (removableNotes.length === 0) return; // Don't remove if all notes are too new
+
+            let randomIndex = Math.floor(Math.random() * removableNotes.length);
+            let oscToRemove = removableNotes[randomIndex];
+
+            let fadeDuration = 0.8 + Math.random() * 0.4; // Random fade between 0.8 and 1.2 sec
+
+            fadeOutAndStop(oscToRemove, fadeDuration); // More natural fadeOutAndStop with random duration
+            
+            // Remove from the array
+            oscillators = oscillators.filter(osc => osc !== oscToRemove);
+        }
+
+
+        function addOctaveNote() {
+        if (octaveOscillators.length > 0) return;
+        let freq = baseFrequencies[Math.floor(Math.random() * baseFrequencies.length)] * 2;
+        let osc = audioContext.createOscillator();
+        let gainNode = audioContext.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 1);
+
+        osc.connect(gainNode).connect(audioContext.destination);
+        osc.start();
+
+        octaveOscillators.push({ oscillator: osc, gainNode: gainNode, frequency: freq });
+
+        // Use fadeOutAndStop for consistent behavior
+        setTimeout(() => {
+            fadeOutAndStop(octaveOscillators[0], 8);
+            octaveOscillators = [];
+        }, 8000);
+    }
+
+        function removeOctaveNote() {
+            if (octaveOscillators.length === 0) return;
+            let oscToRemove = octaveOscillators.pop();
+
+            fadeOutAndStop(oscToRemove, 1.5);
+        }
+
+    </script>
+</body>
+</html>

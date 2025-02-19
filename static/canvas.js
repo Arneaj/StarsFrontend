@@ -413,14 +413,19 @@ function clickFunction(event) {
     let text = info_box.innerHTML;
 
     if (a_box_is_open) return;
-    if (info_box.style.opacity === "0") return;
+    if (info_box.style.opacity === "0") 
+    {
+
+    } 
+    else 
+    {
+        info_box.innerHTML += `<br><br><button>Like</button><button>Dislike</button><button onclick="closeWindow(event)">Close</button>`;
+    }
 
     info_box.style.backgroundColor = "#1a0416d7";
     info_box.style.top = "40%";
     info_box.style.left = "20%";
     info_box.style.width = "60%";
-    info_box.innerHTML += `<br><br><button>Like</button><button>Dislike</button><button onclick="closeWindow(event)">Close</button>`;
-
     a_box_is_open = true;
 }
 

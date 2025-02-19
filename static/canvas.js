@@ -35,7 +35,12 @@ class StarStreamManager {
 
     getViewport() {
         const aspect = this.canvas.clientHeight / this.canvas.clientWidth;
-        return `-1,1,${-aspect},${aspect}`;
+        return {
+            left: -1,
+            right: 1,
+            bottom: -aspect,
+            top: aspect
+        };
     }
 
     setupSSE() {
@@ -78,7 +83,7 @@ class StarStreamManager {
         if (starUpdate.event === 'add') {
             const { id, x, y } = starUpdate.star;
             // Check if the star is within the current viewport.
-            const bounds = this.getViewport();
+            const bounds = this.getViewport(); // Deepseek! Should this be getting bounds? 
             if (x >= bounds.left && x <= bounds.right && y >= bounds.bottom && y <= bounds.top) {
                 // Fetch full star details (including the message)
                 const fullStar = await fetchStarDetails(id);

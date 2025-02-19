@@ -1,0 +1,4 @@
+127.0.0.1 - - [19/Feb/2025 11:39:37] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [19/Feb/2025 11:39:37] "GET /canvas.js HTTP/1.1" 200 -
+127.0.0.1 - - [19/Feb/2025 11:39:37] code 404, message File not found
+127.0.0.1 - - [19/Feb/2025 11:39:37] "GET /favicon.ico HTTP/1.1" 404 -

@@ -363,7 +363,11 @@ try {
 let last_check = 0;
 const throttle_delay = 100;
 
+var a_box_is_open = false;
+
 function getMessage(event) {
+    if (a_box_is_open) return;
+
     let now = Date.now(); 
     if (now - last_check <= throttle_delay) return;
     last_check = now;
@@ -392,6 +396,7 @@ function getMessage(event) {
         return;
     }
     infoElement.innerHTML = "<b>User</b><br><br>" + message;
+    infoElement.style.backgroundColor = "#1a04167b";
     infoElement.style.top = ((1-message_y)*canvas.clientHeight/2) + "px";
     infoElement.style.left = ((message_x+1)*canvas.clientWidth/2 + 20) + "px";
     infoElement.style.width = "10%";
@@ -407,13 +412,23 @@ function clickFunction(event) {
     let y = 1 - 2*event.clientY / canvas.clientHeight;
     let text = info_box.innerHTML;
 
-    if (text.includes("Like")) return;
+    if (a_box_is_open) return;
     if (info_box.style.opacity === "0") return;
 
-    info_box.style.top = "30%";
-    info_box.style.left = "30%";
-    info_box.style.width = "40%";
-    info_box.innerHTML += "<br><br><button>Like</button><button>Dislike</button>";
+    info_box.style.backgroundColor = "#1a0416d7";
+    info_box.style.top = "40%";
+    info_box.style.left = "20%";
+    info_box.style.width = "60%";
+    info_box.innerHTML += `<br><br><button>Like</button><button>Dislike</button><button onclick="closeWindow(event)">Close</button>`;
+
+    a_box_is_open = true;
+}
+
+function closeWindow(event) {
+    const info_box = document.getElementById('info');
+
+    info_box.style.opacity = "0";
+    a_box_is_open = false;
 }
 
 

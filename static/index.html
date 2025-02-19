@@ -66,13 +66,15 @@
       }
     </style>
   </head>
-  <body onmousemove="getMessage(event)" onclick="clickFunction(event)">
+  <body onmousemove="getMessage(event)" onclick="clickFunction(event); octaveNote(event);">
     
     <!-- The controls panel with Add/Remove buttons -->
     <div id="controls">
       <button onclick="addRandomStar()">Add Random Star</button>
       <button onclick="removeStarByIDPrompt()">Remove Star By ID</button>
       <button onClick="removeAllStars()">Remove All Stars</button>
+      <button onclick="stopDrone(); removeOctaveNote();">Mute Sound</button>
+
     </div>
 
     <canvas id="stars_canvas"></canvas>

@@ -1,4 +1,4 @@
-# cdaudio_service/app.py
+# audio_service/app.py
 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy

@@ -398,7 +398,36 @@ function getMessage(event) {
 let last_clicked_x = 0;
 let last_clicked_y = 0;
 
+var mouseHoldTimeout = null;
+var mouseDownDone = false;
+
+function mouseDown() {
+    if (a_box_is_open) return;
+
+    mouseHoldTimeout = setTimeout(() => {
+        mouseDownDone = true;
+    }, 500);
+}
+
+function mouseDownAndMove(event) {
+    if (a_box_is_open) return;
+    if (!mouseDownDone && !mouseHoldTimeout) return;
+
+    const canvas = document.getElementById('stars_canvas');
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+    console.log(x, y);
+}
+
 function clickFunction(event) {
+    if (mouseHoldTimeout) {
+        clearTimeout(mouseHoldTimeout);
+        mouseHoldTimeout = null;
+    }
+    if (mouseDownDone) {
+        mouseDownDone = false;
+        return;
+    }
     if (a_box_is_open) return;
     a_box_is_open = true;
 
@@ -416,8 +445,8 @@ function clickFunction(event) {
 
     if (initial_opacity === "0") 
     {
-        last_clicked_x = 2*event.clientX / canvas.clientWidth - 1;
-        last_clicked_y = 1 - 2*event.clientY / canvas.clientHeight;
+        last_clicked_x = x;
+        last_clicked_y = y;
 
         info_box.innerHTML = "<b>Add a star</b><br><br>"
         info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`

@@ -78,7 +78,7 @@ class StarStreamManager {
         if (starUpdate.event === 'add') {
             const { id, x, y } = starUpdate.star;
             // Check if the star is within the current viewport.
-            const bounds = this.getViewportBounds();
+            const bounds = this.getViewport();
             if (x >= bounds.left && x <= bounds.right && y >= bounds.bottom && y <= bounds.top) {
                 // Fetch full star details (including the message)
                 const fullStar = await fetchStarDetails(id);

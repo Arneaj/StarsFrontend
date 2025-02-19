@@ -422,20 +422,24 @@ function mouseDownAndMove(event) {
 
     const canvas = document.getElementById('stars_canvas');
 
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+    let t = Date.now();
+
     if (last_x === null || last_y === null || last_t === null) {
-        last_x = 2*event.clientX / canvas.clientWidth - 1;
-        last_y = 1 - 2*event.clientY / canvas.clientHeight;
-        last_t = Date.now();
+        last_x = x;
+        last_y = y;
+        last_t = t;
         return;
     }
 
-    let dx = 2*event.clientX / canvas.clientWidth - 1 - last_x;
-    let dy = 1 - 2*event.clientY / canvas.clientHeight - last_y;
-    let dt = Date.now() - last_t;
+    let dx = x - last_x;
+    let dy = y - last_y;
+    let dt = t - last_t;
 
-    last_x = 2*event.clientX / canvas.clientWidth - 1;
-    last_y = 1 - 2*event.clientY / canvas.clientHeight;
-    last_t = Date.now()
+    last_x = x;
+    last_y = y;
+    last_t = t;
 
     speed_x += dx/dt;
     speed_y += dy/dt;

@@ -390,6 +390,9 @@ function getMessage(event) {
     infoElement.style.opacity = "1";
 }
 
+let last_clicked_x = 0;
+let last_clicked_y = 0;
+
 function clickFunction(event) {
     if (a_box_is_open) return;
     a_box_is_open = true;
@@ -408,6 +411,9 @@ function clickFunction(event) {
 
     if (initial_opacity === "0") 
     {
+        last_clicked_x = 2*event.clientX / canvas.clientWidth - 1;
+        last_clicked_y = 1 - 2*event.clientY / canvas.clientHeight;
+
         info_box.innerHTML = "<b>Add a star</b><br><br>"
         info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`
 
@@ -456,14 +462,10 @@ function closeWindow(event) {
 }
 
 function submitMessage(event) {
-    const canvas = document.getElementById('stars_canvas');
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
-
     const message_input = document.getElementById('star_message');
     let msg = message_input.value;
 
-    createStar(x, y, msg);
+    createStar(last_clicked_x, last_clicked_y, msg);
 
     closeWindow(event)
 }

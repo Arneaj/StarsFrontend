@@ -417,32 +417,37 @@ function clickFunction(event) {
 
     info_box.style.backgroundColor = "#1a0416d7";
     info_box.style.top = "40%";
-    info_box.style.left = "20%";
-    info_box.style.width = "60%";
+    info_box.style.left = "25%";
+    info_box.style.width = "50%";
 
     if (info_box.style.opacity === "0") 
     {
         info_box.innerHTML = "<b>Add a star</b><br><br>"
-        info_box.innerHTML += `<input type="text" id="star_message" name="star_message">`
+        info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`
 
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
 
         info_box.innerHTML +=  `<br><br>
-                                <button id="submit_button">
+                                <button id="submit_button" class="button submit_button">
                                     Submit message
                                 </button>
-                                <button id="close_button" onclick="closeWindow(event)">
+                                <button id="close_button" class="button close_button" onclick="closeWindow(event)">
                                     Close
                                 </button>`;
-
-        info_box.innerHTML.getElementById(submit_button);
-
     } 
     else 
     {
         info_box.innerHTML +=  `<br><br>
-                                <button id="like_button">Like</button><button id="dislike_button">Dislike</button><button id="close_button" onclick="closeWindow(event)">Close</button>`;
+                                <button id="like_button" class="button like_button">
+                                    Like
+                                </button>
+                                <button id="dislike_button" class="button dislike_button">
+                                    Dislike
+                                </button>
+                                <button id="close_button" class="button close_button" onclick="closeWindow(event)">
+                                    Close
+                                </button>`;
     }
 }
 

@@ -398,26 +398,58 @@ function getMessage(event) {
 let last_clicked_x = 0;
 let last_clicked_y = 0;
 
+var speed_x = 0;
+var speed_y = 0;
+
 var mouseHoldTimeout = null;
 var mouseDownDone = false;
 
 function mouseDown() {
     if (a_box_is_open) return;
-
+    
     mouseHoldTimeout = setTimeout(() => {
         mouseDownDone = true;
     }, 500);
 }
+
+var last_x = null;
+var last_y = null;
+var last_t = null;
 
 function mouseDownAndMove(event) {
     if (a_box_is_open) return;
     if (!mouseDownDone && !mouseHoldTimeout) return;
 
     const canvas = document.getElementById('stars_canvas');
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
-    console.log(x, y);
+
+    if (last_x === null || last_y === null || last_t === null) {
+        last_x = 2*event.clientX / canvas.clientWidth - 1;
+        last_y = 1 - 2*event.clientY / canvas.clientHeight;
+        last_t = Date.now();
+        return;
+    }
+
+    let dx = 2*event.clientX / canvas.clientWidth - 1 - last_x;
+    let dy = 1 - 2*event.clientY / canvas.clientHeight - last_y;
+    let dt = Date.now() - last_t;
+
+    last_x = 2*event.clientX / canvas.clientWidth - 1;
+    last_y = 1 - 2*event.clientY / canvas.clientHeight;
+    last_t = Date.now()
+
+    speed_x += dx/dt;
+    speed_y += dy/dt;
 }
+
+function displaySpeed() {
+    console.log("(v_x, v_y) = (", speed_x, ", ", speed_y, ")");
+
+    setTimeout(() => {
+        displaySpeed();
+    }, 500);
+}
+
+displaySpeed();
 
 function clickFunction(event) {
     if (mouseHoldTimeout) {
@@ -426,6 +458,9 @@ function clickFunction(event) {
     }
     if (mouseDownDone) {
         mouseDownDone = false;
+        last_x = null;
+        last_y = null;
+        last_t = null;
         return;
     }
     if (a_box_is_open) return;

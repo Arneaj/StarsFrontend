@@ -429,7 +429,7 @@ function clickFunction(event) {
         info_box.style.opacity = "1";
 
         info_box.innerHTML +=  `<br><br>
-                                <button id="submit_button" class="button submit_button">
+                                <button id="submit_button" class="button submit_button" onclick="submitMessage(event)">
                                     Submit message
                                 </button>
                                 <button id="close_button" class="button close_button" onclick="closeWindow(event)">
@@ -469,6 +469,18 @@ function closeWindow(event) {
     event.stopPropagation()
 }
 
+function submitMessage(event) {
+    const canvas = document.getElementById('stars_canvas');
+    let x = 2*event.clientX / canvas.clientWidth - 1;
+    let y = 1 - 2*event.clientY / canvas.clientHeight;
+
+    const message_input = document.getElementById('star_message');
+    let msg = message_input.value;
+
+    createStar(x, y, msg);
+
+    closeWindow(event)
+}
 
 
 

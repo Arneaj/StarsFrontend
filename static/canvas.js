@@ -405,6 +405,9 @@ function getMessage(event) {
 }
 
 function clickFunction(event) {
+    if (a_box_is_open) return;
+    a_box_is_open = true;
+
     const info_box = document.getElementById('info');
     const canvas = document.getElementById('stars_canvas');
 
@@ -412,21 +415,35 @@ function clickFunction(event) {
     let y = 1 - 2*event.clientY / canvas.clientHeight;
     let text = info_box.innerHTML;
 
-    if (a_box_is_open) return;
-    if (info_box.style.opacity === "0") 
-    {
-
-    } 
-    else 
-    {
-        info_box.innerHTML += `<br><br><button>Like</button><button>Dislike</button><button onclick="closeWindow(event)">Close</button>`;
-    }
-
     info_box.style.backgroundColor = "#1a0416d7";
     info_box.style.top = "40%";
     info_box.style.left = "20%";
     info_box.style.width = "60%";
-    a_box_is_open = true;
+
+    if (info_box.style.opacity === "0") 
+    {
+        info_box.innerHTML = "<b>Add a star</b><br><br>"
+        info_box.innerHTML += `<input type="text" id="star_message" name="star_message">`
+
+        info_box.style.animation = "0.2s smooth-appear ease-in";
+        info_box.style.opacity = "1";
+
+        info_box.innerHTML +=  `<br><br>
+                                <button id="submit_button">
+                                    Submit message
+                                </button>
+                                <button id="close_button" onclick="closeWindow(event)">
+                                    Close
+                                </button>`;
+
+        info_box.innerHTML.getElementById(submit_button);
+
+    } 
+    else 
+    {
+        info_box.innerHTML +=  `<br><br>
+                                <button id="like_button">Like</button><button id="dislike_button">Dislike</button><button id="close_button" onclick="closeWindow(event)">Close</button>`;
+    }
 }
 
 function closeWindow(event) {
@@ -434,6 +451,8 @@ function closeWindow(event) {
 
     info_box.style.opacity = "0";
     a_box_is_open = false;
+
+    event.stopPropagation()
 }
 
 

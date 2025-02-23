@@ -2,9 +2,8 @@
 // cd static
 // python3 -m http.server 3000
 
-
 /***************************************************************************
- * You had these global variables
+ * Global variables
  ***************************************************************************/
 const starPositions = [];
 const starMessages = [];
@@ -12,19 +11,15 @@ var nb_stars;
 const MAX_STARS = 1000; // ensure this is defined somewhere
 const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
 
-/***************************************************************************
- *  <<<=== ADDED: Your gateway or backend URL
- *  In a 3-tier setup, the front-end calls the GATEWAY at :8000,
- *  and the gateway forwards to the DB service at :5000.
- ***************************************************************************/
-
-// Should these be global variables? starPositionsCPUBuffer must be referenced by multiple functions.
-// Up to you Arnaud! 
+// Backend URL
 const BACKEND_URL = "http://127.0.0.1:8000";
 let starPositionsCPUBuffer = new Float32Array(starPositions);
 
+// Auth token
+let authToken = null;
+
 /***************************************************************************
- * Your StarStreamManager, but updated to talk to the gateway
+ * StarStreamManager class
  ***************************************************************************/
 class StarStreamManager {
     constructor(canvas) {
@@ -136,17 +131,90 @@ class StarStreamManager {
 }
 
 /***************************************************************************
- * For demonstration, let's add a simple createStar() 
- * (which calls the gateway) so you can test adding stars.
+ * Auth functions
+ ***************************************************************************/
+function showModal(modalId) {
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function hideModals() {
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+}
+
+// Login form handler
+document.getElementById('login-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    // Validate email and password
+    if (!email || !password) {
+        alert("Email and password are required!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://127.0.0.1:5001/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ "username": email, "password": password })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("token", data.access_token);
+            alert("Login successful!");
+            hideModals();
+        } else {
+            const errorText = await response.text();
+            alert(`Login failed! Error: ${errorText}`);
+        }
+    } catch (error) {
+        console.error("Error during login:", error);
+        alert("Login failed due to a network error.");
+    }
+});
+
+// Registration handler
+document.getElementById('register-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    console.log("Register button clicked!");
+
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+
+    const response = await fetch("http://127.0.0.1:5001/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+
+    if (response.ok) {
+        alert("Registration successful! You can now log in.");
+        showModal('login-modal');
+    } else {
+        const errorData = await response.json();
+        alert(`Registration failed: ${errorData.detail || "Unknown error"}`);
+    }
+});
+
+
+/***************************************************************************
+ * Create star function with auth token
  ***************************************************************************/
 async function createStar(x, y, message) {
-    // Example usage: createStar(0.25, -0.1, "Hello from canvas!");
-    const body = { x, y, message };
+    const token = localStorage.getItem('token');
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+    
     try {
         const resp = await fetch(`${BACKEND_URL}/stars`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
+            headers,
+            body: JSON.stringify({ x, y, message }),
         });
         if (!resp.ok) {
             console.error("Failed to create star:", resp.status, await resp.text());
@@ -160,10 +228,9 @@ async function createStar(x, y, message) {
 }
 
 /***************************************************************************
- * The rest is your existing WebGL code
+ * WebGL code
  ***************************************************************************/
-function showError(errorText) 
-{
+function showError(errorText) {
     const errorBoxDiv = document.getElementById('error-box');
     const errorSpan = document.createElement('p');
     errorSpan.innerText = errorText;
@@ -171,8 +238,7 @@ function showError(errorText)
     console.error(errorText);
 }
   
-async function starsGraphics() 
-{
+async function starsGraphics() {
     const canvas = document.getElementById('stars_canvas');
     if (!canvas) {
       showError('Could not find HTML canvas element');
@@ -185,7 +251,7 @@ async function starsGraphics()
     // 2) Load existing stars that were in the DB before page load
     await fetchInitialStars();
   
-    // 3) Proceed with your WebGL initialization/loop:
+    // 3) Proceed with WebGL initialization/loop
     const gl = canvas.getContext('webgl2');
     if (!gl) {
         const isWebGl1Supported = !!(document.createElement('canvas')).getContext('webgl');
@@ -273,7 +339,6 @@ async function starsGraphics()
     gl.bindBuffer(gl.ARRAY_BUFFER, backgroundQuadBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, backgroundQuadCPUBuffer, gl.STATIC_DRAW);
 
-    // const starPositionsCPUBuffer = new Float32Array(starPositions);
     nb_stars = starPositions.length / 2;
 
     const starUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "star_positions");
@@ -284,15 +349,15 @@ async function starsGraphics()
     const vertexPositionAttributeLocation = gl.getAttribLocation(starsGraphicsProgram, 'vertexPosition');
 
     if (vertexPositionAttributeLocation < 0) {
-      showError(`Failed to get attribute location for vertexPosition`);
+      showError('Failed to get attribute location for vertexPosition');
       return;
     }
     if (starUniformLocation === null) {
-      showError(`Failed to get uniform location for star_positions`);
+      showError('Failed to get uniform location for star_positions');
       return;
     }
     if (timeUniformLocation === null) {
-      showError(`Failed to get uniform location for current_time`);
+      showError('Failed to get uniform location for current_time');
       return;
     }
 
@@ -349,7 +414,7 @@ try {
 }
 
 /***************************************************************************
- * The rest of your message code remains the same
+ * Message handling and UI
  ***************************************************************************/
 let last_check = 0;
 const throttle_delay = 100;
@@ -398,36 +463,7 @@ function getMessage(event) {
 let last_clicked_x = 0;
 let last_clicked_y = 0;
 
-var mouseHoldTimeout = null;
-var mouseDownDone = false;
-
-function mouseDown() {
-    if (a_box_is_open) return;
-
-    mouseHoldTimeout = setTimeout(() => {
-        mouseDownDone = true;
-    }, 500);
-}
-
-function mouseDownAndMove(event) {
-    if (a_box_is_open) return;
-    if (!mouseDownDone && !mouseHoldTimeout) return;
-
-    const canvas = document.getElementById('stars_canvas');
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
-    console.log(x, y);
-}
-
 function clickFunction(event) {
-    if (mouseHoldTimeout) {
-        clearTimeout(mouseHoldTimeout);
-        mouseHoldTimeout = null;
-    }
-    if (mouseDownDone) {
-        mouseDownDone = false;
-        return;
-    }
     if (a_box_is_open) return;
     a_box_is_open = true;
 
@@ -449,7 +485,7 @@ function clickFunction(event) {
         last_clicked_y = y;
 
         info_box.innerHTML = "<b>Add a star</b><br><br>"
-        info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`
+        info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`;
 
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
@@ -504,13 +540,9 @@ function submitMessage(event) {
     closeWindow(event)
 }
 
-
-
-////////////////////////////////////////////////////////////////////
-// Mark code starts here.
-// This fetches the initial stars on page load.
-////////////////////////////////////////////////////////////////////
-
+/***************************************************************************
+ * Fetch initial stars on page load
+ ***************************************************************************/
 async function fetchInitialStars() {
     try {
         const resp = await fetch(`${BACKEND_URL}/stars`);
@@ -534,24 +566,16 @@ async function fetchInitialStars() {
     }
 }
 
-
-
-// Debug buttons to add/remove stars.
-
-/***********************************************************************
- * 1) Create a random star at random X/Y
- ***********************************************************************/
+/***************************************************************************
+ * Debug buttons to add/remove stars
+ ***************************************************************************/
 function addRandomStar() {
     const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
     const ry = (Math.random() * 2 - 1).toFixed(2);
-    // Message with star ID
     const msg = `Random star! Random number: ${Math.floor(Math.random() * 1000)}`;
     createStar(Number(rx), Number(ry), msg);
 }
 
-/***********************************************************************
- * 2) Remove a star by ID (we'll show a prompt for testing)
- ***********************************************************************/
 function removeStarByIDPrompt() {
     const idStr = prompt("Enter the star ID to remove:");
     if (!idStr) return;
@@ -563,9 +587,6 @@ function removeStarByIDPrompt() {
     removeStarByID(starID);
 }
 
-/***********************************************************************
- * 3) Actually call the backend to remove a star by ID
- ***********************************************************************/
 async function removeStarByID(starId) {
     try {
         const resp = await fetch(`${BACKEND_URL}/stars/${starId}`, {
@@ -582,9 +603,6 @@ async function removeStarByID(starId) {
     }
 }
 
-/***********************************************************************
- * 4) Clear all stars # NB!!! This is dangerous. Only for admins TODO
- ***********************************************************************/
 async function removeAllStars() {
     try {
         const resp = await fetch(`${BACKEND_URL}/stars`, {
@@ -609,9 +627,9 @@ async function removeAllStars() {
     }
 }
 
-/***********************************************************************
+/***************************************************************************
  * Helper function to fetch star details by ID
- ***********************************************************************/
+ ***************************************************************************/
 async function fetchStarDetails(starId) {
     try {
         const response = await fetch(`${BACKEND_URL}/stars/${starId}`);

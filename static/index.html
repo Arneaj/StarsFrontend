@@ -173,18 +173,11 @@
         </div>
     </div>
 
-    <script>
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
-        }
-
-        function hideModals() {
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.style.display = 'none';
-            });
-        }
-    </script>
-
+    <!-- Scripts -->
+    <!-- Load the authentication logic first -->
+    <script src="auth.js"></script>
+    <!-- Then load our main Canvas/Stars logic -->
     <script src="canvas.js"></script>
+
 </body>
 </html>

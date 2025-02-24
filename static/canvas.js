@@ -1,6 +1,4 @@
-// Run with: 
-// cd static
-// python3 -m http.server 3000
+// canvas.js
 
 /***************************************************************************
  * Global variables
@@ -14,9 +12,6 @@ const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
 // Backend URL
 const BACKEND_URL = "http://127.0.0.1:8000";
 let starPositionsCPUBuffer = new Float32Array(starPositions);
-
-// Auth token
-let authToken = null;
 
 /***************************************************************************
  * StarStreamManager class
@@ -131,77 +126,7 @@ class StarStreamManager {
 }
 
 /***************************************************************************
- * Auth functions
- ***************************************************************************/
-function showModal(modalId) {
-    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    document.getElementById(modalId).style.display = 'block';
-}
-
-function hideModals() {
-    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-}
-
-// Login form handler
-document.getElementById('login-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-
-    // Validate email and password
-    if (!email || !password) {
-        alert("Email and password are required!");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://127.0.0.1:5001/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ "username": email, "password": password })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem("token", data.access_token);
-            alert("Login successful!");
-            hideModals();
-        } else {
-            const errorText = await response.text();
-            alert(`Login failed! Error: ${errorText}`);
-        }
-    } catch (error) {
-        console.error("Error during login:", error);
-        alert("Login failed due to a network error.");
-    }
-});
-
-// Registration handler
-document.getElementById('register-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    console.log("Register button clicked!");
-
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-
-    const response = await fetch("http://127.0.0.1:5001/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
-
-    if (response.ok) {
-        alert("Registration successful! You can now log in.");
-        showModal('login-modal');
-    } else {
-        const errorData = await response.json();
-        alert(`Registration failed: ${errorData.detail || "Unknown error"}`);
-    }
-});
-
-
-/***************************************************************************
- * Create star function with auth token
+ * Create star function (uses auth token from localStorage)
  ***************************************************************************/
 async function createStar(x, y, message) {
     const token = localStorage.getItem('token');
@@ -470,49 +395,48 @@ function clickFunction(event) {
     const info_box = document.getElementById('info');
     const canvas = document.getElementById('stars_canvas');
 
-    initial_opacity = info_box.style.opacity
-
+    const initial_opacity = info_box.style.opacity;
     info_box.style.animation = "0.2s smooth-disappear ease-out";
     info_box.style.opacity = "0";
 
     let x = 2*event.clientX / canvas.clientWidth - 1;
     let y = 1 - 2*event.clientY / canvas.clientHeight;
-    let text = info_box.innerHTML;
-
-    if (initial_opacity === "0") 
-    {
+    
+    if (initial_opacity === "0") {
+        // This means we are opening the box to add a new star
         last_clicked_x = x;
         last_clicked_y = y;
 
-        info_box.innerHTML = "<b>Add a star</b><br><br>"
+        info_box.innerHTML = "<b>Add a star</b><br><br>";
         info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`;
 
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
 
-        info_box.innerHTML +=  `<br><br>
-                                <button id="submit_button" class="button submit_button" onclick="submitMessage(event)">
-                                    Submit message
-                                </button>
-                                <button id="close_button" class="button close_button" onclick="closeWindow(event)">
-                                    Close
-                                </button>`;
-    } 
-    else 
-    {
+        info_box.innerHTML += `
+            <br><br>
+            <button id="submit_button" class="button submit_button" onclick="submitMessage(event)">
+                Submit message
+            </button>
+            <button id="close_button" class="button close_button" onclick="closeWindow(event)">
+                Close
+            </button>`;
+    } else {
+        // We are opening the box for an existing star (like/dislike, etc.)
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
 
-        info_box.innerHTML +=  `<br><br>
-                                <button id="like_button" class="button like_button">
-                                    Like
-                                </button>
-                                <button id="dislike_button" class="button dislike_button">
-                                    Dislike
-                                </button>
-                                <button id="close_button" class="button close_button" onclick="closeWindow(event)">
-                                    Close
-                                </button>`;
+        info_box.innerHTML += `
+            <br><br>
+            <button id="like_button" class="button like_button">
+                Like
+            </button>
+            <button id="dislike_button" class="button dislike_button">
+                Dislike
+            </button>
+            <button id="close_button" class="button close_button" onclick="closeWindow(event)">
+                Close
+            </button>`;
     }
 
     info_box.style.backgroundColor = "#1a0416d7";
@@ -523,21 +447,17 @@ function clickFunction(event) {
 
 function closeWindow(event) {
     const info_box = document.getElementById('info');
-
     info_box.style.animation = "0.2s smooth-disappear ease-out";
     info_box.style.opacity = "0";
     a_box_is_open = false;
-
-    event.stopPropagation()
+    event.stopPropagation();
 }
 
 function submitMessage(event) {
     const message_input = document.getElementById('star_message');
     let msg = message_input.value;
-
     createStar(last_clicked_x, last_clicked_y, msg);
-
-    closeWindow(event)
+    closeWindow(event);
 }
 
 /***************************************************************************

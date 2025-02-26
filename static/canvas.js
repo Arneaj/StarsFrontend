@@ -242,10 +242,8 @@ async function starsGraphics()
     out vec4 outputColor;
   
     void main() {
-        vec2 uv_cursor_position = (cursor_position+1.0)*0.5;
-        uv_cursor_position = vec2(x_min, y_min) + uv_cursor_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
-        vec2 uv_position = (position+1.0)*0.5;
-        uv_position = vec2(x_min, y_min) + uv_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
+        vec2 uv_cursor_position = cursor_position;//(cursor_position+1.0)*0.5;
+        vec2 uv_position = vec2(x_min, y_min) + position*vec2(x_max_minus_x_min, y_max_minus_y_min);
 
         float d;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -347,21 +345,29 @@ async function starsGraphics()
             0
         );
 
-        let XMIN = 2*x_min/total_map_pixels-1;
-        let XMAX = canvas.clientWidth/total_map_pixels;
-        let YMIN = 1-2*y_min/total_map_pixels;
-        let YMAX = canvas.clientHeight/total_map_pixels;
+        let XMIN = x_min/total_map_pixels;
+        let XMAXMINUSXMIN = canvas.clientWidth/total_map_pixels;
+        let YMIN = y_min/total_map_pixels;
+        let YMAXMINUSYMIN = canvas.clientHeight/total_map_pixels;
 
+        let curs_x = cursor_current_X;
+        let curs_y = cursor_current_Y;
 
+        curs_x = curs_x + x_min;
+        curs_y = curs_y + y_min;
+
+        curs_x /= total_map_pixels;
+        curs_y /= total_map_pixels;
+
+        curs_x = 2*curs_x - 1;   // TODO: CHECK IF NEEDED
+        curs_y = 1 - 2*curs_y;
     
         gl.uniform1f(xMinUniformLocation, XMIN);
-        gl.uniform1f(xMaxMinusXMinUniformLocation, XMAX);
+        gl.uniform1f(xMaxMinusXMinUniformLocation, XMAXMINUSXMIN);
         gl.uniform1f(yMinUniformLocation, YMIN);
-        gl.uniform1f(yMaxMinusYMinUniformLocation, YMAX);
+        gl.uniform1f(yMaxMinusYMinUniformLocation, YMAXMINUSYMIN);
 
-        gl.uniform2f(cursorUniformLocation, 
-                     2 * cursor_current_X / canvas.clientWidth - 1, 
-                     1 - 2 * cursor_current_Y / canvas.clientHeight);
+        gl.uniform2f(cursorUniformLocation, curs_x, curs_y);
         
         gl.uniform1f(timeUniformLocation, currentTime);
 
@@ -398,8 +404,20 @@ function getMessage(event) {
     last_check = now;
 
     const canvas = document.getElementById('stars_canvas');
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
+
+    let x = event.clientX;
+    let y = event.clientY;
+
+    x = x + x_min;
+    y = y + y_min;
+
+    x /= total_map_pixels;
+    y /= total_map_pixels;
+
+    x = 2*x - 1;
+    y = 1 - 2*y;
+    
+    // console.log("(x,y) = ", x, y);
 
     let message = null, message_x, message_y;
     for (var i=0; i<nb_stars; i++){
@@ -409,6 +427,7 @@ function getMessage(event) {
             message = starMessages[i];
             message_x = starPositions[2*i];
             message_y = starPositions[2*i+1];
+            // console.log("(star_x, star_y) = ", message_x, message_y);
             break;
         }
     }
@@ -475,23 +494,28 @@ function mouseDownAndMove(event) {
     last_y = y;
     last_t = t;
 
-    speed_x += dx/dt;
-    speed_y += dy/dt;
+    speed_x += Math.sign(dx/dt) * Math.min(0.1, Math.abs(dx/dt));
+    speed_y += Math.sign(dy/dt) * Math.min(0.1, Math.abs(dy/dt));
 }
 
-function decreaseSpeed() {
-    if (speed_x > 0) speed_x = Math.max(0, speed_x - 0.02);
-    if (speed_x < 0) speed_x = Math.min(0, speed_x + 0.02);
+function updateSpeed() {
+    if (speed_x > 0) speed_x = Math.max(0, speed_x - 0.002);
+    if (speed_x < 0) speed_x = Math.min(0, speed_x + 0.002);
 
-    if (speed_y > 0) speed_y = Math.max(0, speed_y - 0.02);
-    if (speed_y < 0) speed_y = Math.min(0, speed_y + 0.02);
+    if (speed_y > 0) speed_y = Math.max(0, speed_y - 0.002);
+    if (speed_y < 0) speed_y = Math.min(0, speed_y + 0.002);
+
+    x_min -= 300*speed_x;
+    y_min -= 300*speed_y;
+
+    console.log(x_min, y_min);
 
     setTimeout(() => {
-        decreaseSpeed();
-    }, 100);
+        updateSpeed();
+    }, 10);
 }
 
-decreaseSpeed();
+updateSpeed();
 
 function displaySpeed() {
     console.log("(v_x, v_y) = (", speed_x, ", ", speed_y, ")");
@@ -526,9 +550,17 @@ function clickFunction(event) {
     info_box.style.animation = "0.2s smooth-disappear ease-out";
     info_box.style.opacity = "0";
 
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
-    let text = info_box.innerHTML;
+    let x = event.clientX;
+    let y = event.clientY;
+
+    x = x + x_min;
+    y = y + y_min;
+
+    x /= total_map_pixels;
+    y /= total_map_pixels;
+
+    x = 2*x - 1;
+    y = 1 - 2*y;
 
     if (initial_opacity === "0") 
     {

@@ -1,5 +1,7 @@
 // auth.js
 
+const AUTH_URL = "http://127.0.0.1:5001";
+
 // Show/hide modal functions
 function showModal(modalId) {
     document.querySelectorAll('.modal').forEach(modal => {
@@ -38,7 +40,7 @@ function attachFormListeners() {
             }
 
             try {
-                const response = await fetch("http://127.0.0.1:5001/token", {
+                const response = await fetch(`${AUTH_URL}/token`, {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: new URLSearchParams({ username: email, password: password })
@@ -71,7 +73,7 @@ function attachFormListeners() {
             const password = document.getElementById('register-password').value;
 
             try {
-                const response = await fetch("http://127.0.0.1:5001/register", {
+                const response = await fetch(`${AUTH_URL}/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })

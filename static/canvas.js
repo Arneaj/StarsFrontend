@@ -12,118 +12,13 @@ const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
 // Backend URL
 const BACKEND_URL = "http://127.0.0.1:8000";
 let starPositionsCPUBuffer = new Float32Array(starPositions);
+// Hello!
 
 /***************************************************************************
  * StarStreamManager class
  ***************************************************************************/
-class StarStreamManager {
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.eventSource = null;
-        this.setupSSE();
-    }
 
-    getViewport() {
-        const aspect = this.canvas.clientHeight / this.canvas.clientWidth;
-        return {
-            left: -1,
-            right: 1,
-            bottom: -aspect,
-            top: aspect
-        };
-    }
-
-    setupSSE() {
-        if (this.eventSource) {
-            this.eventSource.close();
-        }
-
-        this.eventSource = new EventSource(`${BACKEND_URL}/stars/stream`);
-
-        this.eventSource.onmessage = (event) => {
-            try {
-                const dataStr = event.data.replace(/'/g, '"');
-                const starUpdate = JSON.parse(dataStr);
-                this.handleStarUpdate(starUpdate);
-            } catch (error) {
-                console.error('Error processing star update:', error, event.data);
-            }
-        };
-
-        this.eventSource.onerror = (error) => {
-            console.error('SSE connection error:', error);
-            this.eventSource.close();
-            setTimeout(() => this.setupSSE(), RECONNECTION_TIMEOUT);
-        };
-
-        window.addEventListener('beforeunload', () => {
-            if (this.eventSource) {
-                this.eventSource.close();
-            }
-        });
-    }
-
-    async handleStarUpdate(starUpdate) {
-        if (!starUpdate.star || typeof starUpdate.star.x !== 'number' || 
-            typeof starUpdate.star.y !== 'number' || !starUpdate.star.id) {
-            console.error('Invalid star data received:', starUpdate);
-            return;
-        }
-
-        if (starUpdate.event === 'add') {
-            const { id, x, y } = starUpdate.star;
-            // Check if the star is within the current viewport.
-            const bounds = this.getViewport(); 
-            if (x >= bounds.left && x <= bounds.right && y >= bounds.bottom && y <= bounds.top) {
-                // Fetch full star details (including the message)
-                const fullStar = await fetchStarDetails(id);
-                if (fullStar) {
-                    this.addStar(fullStar);
-                }
-            }
-        } else if (starUpdate.event === 'remove') {
-            this.removeStar(starUpdate.star);
-        } else {
-            console.warn('Unknown star update event:', starUpdate.event);
-        }
-
-        // Update the starPositionsCPUBuffer
-        starPositionsCPUBuffer = new Float32Array(starPositions);
-    }
-
-    addStar(star) {
-        // Check for duplicates
-        for (let i = 0; i < nb_stars; i++) {
-            if (starPositions[2 * i] === star.x && 
-                starPositions[2 * i + 1] === star.y) {
-                console.warn('Duplicate star position detected');
-                return;
-            }
-        }
-    
-        starPositions.push(star.x, star.y);
-        starMessages.push(star.message);
-        nb_stars = starPositions.length / 2;
-    
-        // Update the CPU buffer
-        starPositionsCPUBuffer = new Float32Array(starPositions);
-    }
-
-    removeStar(star) {
-        for (let i = nb_stars - 1; i >= 0; i--) {
-            if (starPositions[2 * i] === star.x && 
-                starPositions[2 * i + 1] === star.y) {
-                starPositions.splice(2 * i, 2);
-                starMessages.splice(i, 1);
-                nb_stars = starPositions.length / 2;
-    
-                // Update the CPU buffer
-                starPositionsCPUBuffer = new Float32Array(starPositions);
-                break;
-            }
-        }
-    }
-}
+import { StarStreamManager } from "./SSE.js";
 
 /***************************************************************************
  * Create star function (uses auth token from localStorage)

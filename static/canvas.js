@@ -242,8 +242,11 @@ async function starsGraphics()
     out vec4 outputColor;
   
     void main() {
-        vec2 uv_cursor_position = cursor_position;//(cursor_position+1.0)*0.5;
-        vec2 uv_position = vec2(x_min, y_min) + position*vec2(x_max_minus_x_min, y_max_minus_y_min);
+        vec2 uv_cursor_position = cursor_position;
+
+        vec2 uv_position = position + vec2(1.0);
+        uv_position *= vec2(x_max_minus_x_min, y_max_minus_y_min);
+        uv_position += 2.0 * vec2(x_min, y_min) - vec2(1.0);
 
         float d;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -350,16 +353,13 @@ async function starsGraphics()
         let YMIN = y_min/total_map_pixels;
         let YMAXMINUSYMIN = canvas.clientHeight/total_map_pixels;
 
-        let curs_x = cursor_current_X;
-        let curs_y = cursor_current_Y;
-
-        curs_x = curs_x + x_min;
-        curs_y = curs_y + y_min;
+        let curs_x = cursor_current_X + x_min;
+        let curs_y = cursor_current_Y + y_min;
 
         curs_x /= total_map_pixels;
         curs_y /= total_map_pixels;
 
-        curs_x = 2*curs_x - 1;   // TODO: CHECK IF NEEDED
+        curs_x = 2*curs_x - 1;
         curs_y = 1 - 2*curs_y;
     
         gl.uniform1f(xMinUniformLocation, XMIN);
@@ -405,35 +405,34 @@ function getMessage(event) {
 
     const canvas = document.getElementById('stars_canvas');
 
-    let x = event.clientX;
-    let y = event.clientY;
-
-    x = x + x_min;
-    y = y + y_min;
+    let x = event.clientX + x_min;
+    let y = event.clientY + y_min;
 
     x /= total_map_pixels;
     y /= total_map_pixels;
 
     x = 2*x - 1;
     y = 1 - 2*y;
-    
-    // console.log("(x,y) = ", x, y);
 
     let message = null, message_x, message_y;
-    for (var i=0; i<nb_stars; i++){
+    for (var i=0; i<nb_stars; i++)
+    {
         const dx = x - starPositions[2*i];
         const dy = y - starPositions[2*i+1];
-        if (dx*dx + dy*dy < 0.0003){
+        if (dx*dx + dy*dy < 0.0003)
+        {
             message = starMessages[i];
+
             message_x = starPositions[2*i];
             message_y = starPositions[2*i+1];
-            // console.log("(star_x, star_y) = ", message_x, message_y);
+
             break;
         }
     }
 
     const infoElement = document.getElementById('info');
-    if (!message){
+    if (!message)
+    {
         infoElement.style.animation = "0.2s smooth-disappear ease-out";
         infoElement.style.opacity = "0";
         infoElement.style.width = "10%";
@@ -550,11 +549,8 @@ function clickFunction(event) {
     info_box.style.animation = "0.2s smooth-disappear ease-out";
     info_box.style.opacity = "0";
 
-    let x = event.clientX;
-    let y = event.clientY;
-
-    x = x + x_min;
-    y = y + y_min;
+    let x = event.clientX + x_min;
+    let y = event.clientY + y_min;
 
     x /= total_map_pixels;
     y /= total_map_pixels;

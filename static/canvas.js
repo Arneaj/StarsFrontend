@@ -9,6 +9,14 @@
 const starPositions = [];
 const starMessages = [];
 var nb_stars;
+
+var x_min = 5000;
+var y_min = 5000;
+
+var zoom = 0;
+
+const total_map_pixels = 10000;
+
 const MAX_STARS = 1000; // ensure this is defined somewhere
 const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
 
@@ -219,9 +227,14 @@ async function starsGraphics()
     const fragmentShaderSourceCode = `#version 300 es
     precision mediump float;
 
-    uniform float canvas_height_by_width;
+    uniform float x_min;
+    uniform float x_max_minus_x_min;
+    uniform float y_min;
+    uniform float y_max_minus_y_min;
+
     uniform int nb_stars;
     uniform vec2 star_positions[1000];
+
     uniform float current_time;
     uniform vec2 cursor_position;
 
@@ -229,18 +242,19 @@ async function starsGraphics()
     out vec4 outputColor;
   
     void main() {
-        vec2 uv_cursor_position = cursor_position * vec2(1.0, canvas_height_by_width);
-        vec2 uv_position = position * vec2(1.0, canvas_height_by_width);
+        vec2 uv_cursor_position = (cursor_position+1.0)*0.5;
+        uv_cursor_position = vec2(x_min, y_min) + uv_cursor_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
+        vec2 uv_position = (position+1.0)*0.5;
+        uv_position = vec2(x_min, y_min) + uv_position*vec2(x_max_minus_x_min, y_max_minus_y_min);
 
-        float d[4];
+        float d;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
         for (int i=0; i<nb_stars; i++)
         {
-            vec2 uv_star_position = star_positions[i] * vec2(1.0, canvas_height_by_width);
-            d[i] = distance(uv_position, uv_star_position);
-            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) 
-                / pow(500.0*d[i], 1.8);
+            vec2 uv_star_position = star_positions[i];
+            d = distance(uv_position, uv_star_position);
+            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(500.0*d, 1.8);
         }
 
         float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position));
@@ -279,8 +293,14 @@ async function starsGraphics()
     const starUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "star_positions");
     const timeUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "current_time");
     const starNumberUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "nb_stars");
-    const heightByWidthUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "canvas_height_by_width");
+
+    const xMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "x_min");
+    const xMaxMinusXMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "x_max_minus_x_min");
+    const yMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "y_min");
+    const yMaxMinusYMinUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "y_max_minus_y_min");
+
     const cursorUniformLocation = gl.getUniformLocation(starsGraphicsProgram, "cursor_position");
+
     const vertexPositionAttributeLocation = gl.getAttribLocation(starsGraphicsProgram, 'vertexPosition');
 
     if (vertexPositionAttributeLocation < 0) {
@@ -301,6 +321,7 @@ async function starsGraphics()
     canvas.height = canvas.clientHeight;
     gl.clearColor(0.08, 0.08, 0.08, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     let cursor_current_X = 0;
@@ -325,12 +346,25 @@ async function starsGraphics()
             2 * Float32Array.BYTES_PER_ELEMENT,
             0
         );
+
+        let XMIN = 2*x_min/total_map_pixels-1;
+        let XMAX = canvas.clientWidth/total_map_pixels;
+        let YMIN = 1-2*y_min/total_map_pixels;
+        let YMAX = canvas.clientHeight/total_map_pixels;
+
+
     
-        gl.uniform1f(heightByWidthUniformLocation, canvas.clientHeight / canvas.clientWidth);
+        gl.uniform1f(xMinUniformLocation, XMIN);
+        gl.uniform1f(xMaxMinusXMinUniformLocation, XMAX);
+        gl.uniform1f(yMinUniformLocation, YMIN);
+        gl.uniform1f(yMaxMinusYMinUniformLocation, YMAX);
+
         gl.uniform2f(cursorUniformLocation, 
                      2 * cursor_current_X / canvas.clientWidth - 1, 
                      1 - 2 * cursor_current_Y / canvas.clientHeight);
+        
         gl.uniform1f(timeUniformLocation, currentTime);
+
         gl.uniform1i(starNumberUniformLocation, nb_stars);
         gl.uniform2fv(starUniformLocation, starPositionsCPUBuffer); // Use the updated buffer
     
@@ -435,7 +469,7 @@ function mouseDownAndMove(event) {
 
     let dx = x - last_x;
     let dy = y - last_y;
-    let dt = t - last_t;
+    let dt = Math.max(0.0001, t - last_t);
 
     last_x = x;
     last_y = y;
@@ -444,6 +478,20 @@ function mouseDownAndMove(event) {
     speed_x += dx/dt;
     speed_y += dy/dt;
 }
+
+function decreaseSpeed() {
+    if (speed_x > 0) speed_x = Math.max(0, speed_x - 0.02);
+    if (speed_x < 0) speed_x = Math.min(0, speed_x + 0.02);
+
+    if (speed_y > 0) speed_y = Math.max(0, speed_y - 0.02);
+    if (speed_y < 0) speed_y = Math.min(0, speed_y + 0.02);
+
+    setTimeout(() => {
+        decreaseSpeed();
+    }, 100);
+}
+
+decreaseSpeed();
 
 function displaySpeed() {
     console.log("(v_x, v_y) = (", speed_x, ", ", speed_y, ")");

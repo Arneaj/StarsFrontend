@@ -72,9 +72,11 @@
     <div id="controls">
       <button onclick="addRandomStar()">Add Random Star</button>
       <button onclick="removeStarByIDPrompt()">Remove Star By ID</button>
-      <button onClick="removeAllStars()">Remove All Stars</button>
-      <button onclick="stopDrone(); removeOctaveNote();">Mute Sound</button>
-
+      <button onclick="removeAllStars()">Remove All Stars</button>
+      <button onclick="startDrone()">Start Drone</button>
+      <button onclick="stopDrone()">Mute Sound</button>
+      <button onclick="addOctaveNote()">Add Octave Note</button>
+      <button onclick="removeOctaveNote()">Remove Octave Note</button>
     </div>
 
     <canvas id="stars_canvas"></canvas>
@@ -83,7 +85,7 @@
     <div id="error-box">
       <span class="error-box-title">Error messages, if any, go here.</span>
     </div>
-
+    <script src="music.js"></script>
     <script src="canvas.js"></script>
   </body>
 </html>

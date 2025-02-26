@@ -1,4 +1,4 @@
-// music.js
+// Handles audio functions
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let oscillators = [];
 let octaveOscillators = [];
@@ -49,7 +49,7 @@ export function removeOctaveNote() {
     fadeOutAndStop(octaveOscillators.pop(), 1.5);
 }
 
-function addRandomNote() {
+export function addRandomNote() {
     if (oscillators.length >= baseFrequencies.length) return;
     let freq = baseFrequencies[Math.floor(Math.random() * baseFrequencies.length)];
     let osc = audioContext.createOscillator();
@@ -73,3 +73,9 @@ function dropNote() {
     fadeOutAndStop(oscToRemove, 0.8 + Math.random() * 0.4);
     oscillators = oscillators.filter(osc => osc !== oscToRemove);
 }
+
+// Expose functions globally - so they can be used without using modules
+window.addOctaveNote = addOctaveNote;
+window.removeOctaveNote = removeOctaveNote;
+window.startDrone = startDrone;
+window.stopDrone = stopDrone;

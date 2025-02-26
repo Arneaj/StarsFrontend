@@ -1,7 +1,10 @@
+// Handles visuals and calls music functions
 // Run with: 
 // cd static
 // python3 -m http.server 3000
 
+// Importing music-related functions - NOT NEEDED after using window function
+// import { startDrone, stopDrone, addOctaveNote, removeOctaveNote } from "./music.js";
 
 /***************************************************************************
  * You had these global variables
@@ -114,6 +117,8 @@ class StarStreamManager {
         starPositions.push(star.x, star.y);
         starMessages.push(star.message);
         nb_stars = starPositions.length / 2;
+
+        window.addOctaveNote();
     
         // Update the CPU buffer
         starPositionsCPUBuffer = new Float32Array(starPositions);
@@ -518,6 +523,8 @@ function addRandomStar() {
     // Message with star ID
     const msg = `Random star! Random number: ${Math.floor(Math.random() * 1000)}`;
     createStar(Number(rx), Number(ry), msg);
+    window.addOctaveNote();
+
 }
 
 /***********************************************************************

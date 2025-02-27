@@ -259,11 +259,11 @@ async function starsGraphics()
         {
             uv_star_position = star_positions[i];
             d = distance(uv_position, uv_star_position);
-            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(d*0.00005, 1.8);
+            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(d*0.0005, 1.8);
         }
 
-        float d_from_cursor = max(0.1, 100.0*distance(uv_cursor_position, uv_position));
-        outputColor.xyz /= max(0.3, pow(d_from_cursor, 1.0));
+        float d_from_cursor = max(1000.0, 1000.0*distance(uv_cursor_position, uv_position));
+        outputColor.xyz /= max(20000.0, pow(d_from_cursor, 1.0));
     }`;
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fragmentShader, fragmentShaderSourceCode);
@@ -406,7 +406,7 @@ function getMessage(event) {
     {
         const dx = x - starPositions[2*i];
         const dy = y - starPositions[2*i+1];
-        if (dx*dx + dy*dy < 10000)
+        if (dx*dx + dy*dy < 1000)
         {
             message = starMessages[i];
 

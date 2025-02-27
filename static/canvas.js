@@ -487,15 +487,12 @@ function mouseDownAndMove(event) {
 function updateSpeed() {
     if (!mouseDownDone && !mouseHoldTimeout) 
     {
-        if (speed_x > 0) speed_x = Math.max(0, speed_x - 2);
-        if (speed_x < 0) speed_x = Math.min(0, speed_x + 2);
-
-        if (speed_y > 0) speed_y = Math.max(0, speed_y - 2);
-        if (speed_y < 0) speed_y = Math.min(0, speed_y + 2);
+        speed_x *= 0.9;
+        speed_y *= 0.9;
     }
 
-    x_min = Math.min(total_map_pixels, Math.max(0, x_min - speed_x));
-    y_min = Math.min(total_map_pixels, Math.max(0, y_min - speed_y));
+    x_min = Math.min(total_map_pixels, Math.max(0, x_min - 3*speed_x));
+    y_min = Math.min(total_map_pixels, Math.max(0, y_min - 3*speed_y));
 
     setTimeout(() => {
         updateSpeed();

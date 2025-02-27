@@ -244,22 +244,26 @@ async function starsGraphics()
     void main() {
         vec2 uv_cursor_position = cursor_position;
 
-        vec2 uv_position = position + vec2(1.0);
+        vec2 uv_position = vec2(
+            position.x + 1.0,
+            1.0 - position.y
+        )*0.5;
         uv_position *= vec2(x_max_minus_x_min, y_max_minus_y_min);
-        uv_position += 2.0 * vec2(x_min, y_min) - vec2(1.0);
+        uv_position += vec2(x_min, y_min);
 
         float d;
+        vec2 uv_star_position;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
         for (int i=0; i<nb_stars; i++)
         {
-            vec2 uv_star_position = star_positions[i];
+            uv_star_position = star_positions[i];
             d = distance(uv_position, uv_star_position);
-            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(500.0*d, 1.8);
+            outputColor += (1.0 + 0.1*sin(10.0*current_time)) * vec4(1.0, 0.9, 0.7, 1.0) / pow(d*0.00005, 1.8);
         }
 
-        float d_from_cursor = max(0.1, distance(uv_cursor_position, uv_position));
-        outputColor.xyz /= max(0.3, pow(5.0*d_from_cursor, 1.0));
+        float d_from_cursor = max(0.1, 100.0*distance(uv_cursor_position, uv_position));
+        outputColor.xyz /= max(0.3, pow(d_from_cursor, 1.0));
     }`;
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fragmentShader, fragmentShaderSourceCode);
@@ -348,24 +352,13 @@ async function starsGraphics()
             0
         );
 
-        let XMIN = x_min/total_map_pixels;
-        let XMAXMINUSXMIN = canvas.clientWidth/total_map_pixels;
-        let YMIN = y_min/total_map_pixels;
-        let YMAXMINUSYMIN = canvas.clientHeight/total_map_pixels;
-
         let curs_x = cursor_current_X + x_min;
         let curs_y = cursor_current_Y + y_min;
-
-        curs_x /= total_map_pixels;
-        curs_y /= total_map_pixels;
-
-        curs_x = 2*curs_x - 1;
-        curs_y = 1 - 2*curs_y;
     
-        gl.uniform1f(xMinUniformLocation, XMIN);
-        gl.uniform1f(xMaxMinusXMinUniformLocation, XMAXMINUSXMIN);
-        gl.uniform1f(yMinUniformLocation, YMIN);
-        gl.uniform1f(yMaxMinusYMinUniformLocation, YMAXMINUSYMIN);
+        gl.uniform1f(xMinUniformLocation, x_min);
+        gl.uniform1f(xMaxMinusXMinUniformLocation, canvas.clientWidth);
+        gl.uniform1f(yMinUniformLocation, y_min);
+        gl.uniform1f(yMaxMinusYMinUniformLocation, canvas.clientHeight);
 
         gl.uniform2f(cursorUniformLocation, curs_x, curs_y);
         
@@ -408,23 +401,17 @@ function getMessage(event) {
     let x = event.clientX + x_min;
     let y = event.clientY + y_min;
 
-    x /= total_map_pixels;
-    y /= total_map_pixels;
-
-    x = 2*x - 1;
-    y = 1 - 2*y;
-
     let message = null, message_x, message_y;
     for (var i=0; i<nb_stars; i++)
     {
         const dx = x - starPositions[2*i];
         const dy = y - starPositions[2*i+1];
-        if (dx*dx + dy*dy < 0.0003)
+        if (dx*dx + dy*dy < 10000)
         {
             message = starMessages[i];
 
-            message_x = starPositions[2*i];
-            message_y = starPositions[2*i+1];
+            message_x = starPositions[2*i] - x_min;
+            message_y = starPositions[2*i+1] - y_min;
 
             break;
         }
@@ -440,8 +427,8 @@ function getMessage(event) {
     }
     infoElement.innerHTML = "<b>User</b><br><br>" + message;
     infoElement.style.backgroundColor = "#1a04167b";
-    infoElement.style.top = ((1-message_y)*canvas.clientHeight/2) + "px";
-    infoElement.style.left = ((message_x+1)*canvas.clientWidth/2 + 20) + "px";
+    infoElement.style.top = (message_y) + "px";
+    infoElement.style.left = (message_x + 20) + "px";
     infoElement.style.width = "10%";
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";
@@ -474,8 +461,8 @@ function mouseDownAndMove(event) {
 
     const canvas = document.getElementById('stars_canvas');
 
-    let x = 2*event.clientX / canvas.clientWidth - 1;
-    let y = 1 - 2*event.clientY / canvas.clientHeight;
+    let x = event.clientX;
+    let y = event.clientY;
     let t = Date.now();
 
     if (last_x === null || last_y === null || last_t === null) {
@@ -487,7 +474,7 @@ function mouseDownAndMove(event) {
 
     let dx = x - last_x;
     let dy = y - last_y;
-    let dt = Math.max(0.0001, t - last_t);
+    let dt = Math.max(0.001, t - last_t);
 
     last_x = x;
     last_y = y;
@@ -498,16 +485,17 @@ function mouseDownAndMove(event) {
 }
 
 function updateSpeed() {
-    if (speed_x > 0) speed_x = Math.max(0, speed_x - 0.002);
-    if (speed_x < 0) speed_x = Math.min(0, speed_x + 0.002);
+    if (!mouseDownDone && !mouseHoldTimeout) 
+    {
+        if (speed_x > 0) speed_x = Math.max(0, speed_x - 2);
+        if (speed_x < 0) speed_x = Math.min(0, speed_x + 2);
 
-    if (speed_y > 0) speed_y = Math.max(0, speed_y - 0.002);
-    if (speed_y < 0) speed_y = Math.min(0, speed_y + 0.002);
+        if (speed_y > 0) speed_y = Math.max(0, speed_y - 2);
+        if (speed_y < 0) speed_y = Math.min(0, speed_y + 2);
+    }
 
-    x_min -= 300*speed_x;
-    y_min -= 300*speed_y;
-
-    console.log(x_min, y_min);
+    x_min -= speed_x;
+    y_min -= speed_y;
 
     setTimeout(() => {
         updateSpeed();
@@ -515,16 +503,6 @@ function updateSpeed() {
 }
 
 updateSpeed();
-
-function displaySpeed() {
-    console.log("(v_x, v_y) = (", speed_x, ", ", speed_y, ")");
-
-    setTimeout(() => {
-        displaySpeed();
-    }, 500);
-}
-
-displaySpeed();
 
 function clickFunction(event) {
     if (mouseHoldTimeout) {
@@ -552,11 +530,8 @@ function clickFunction(event) {
     let x = event.clientX + x_min;
     let y = event.clientY + y_min;
 
-    x /= total_map_pixels;
-    y /= total_map_pixels;
-
-    x = 2*x - 1;
-    y = 1 - 2*y;
+    console.log("(x,y)", x, y)
+    console.log("(x_min,y_min)", x_min, y_min);
 
     if (initial_opacity === "0") 
     {

@@ -42,12 +42,11 @@ class StarStreamManager {
     }
 
     getViewport() {
-        const aspect = this.canvas.clientHeight / this.canvas.clientWidth;
         return {
-            left: -1,
-            right: 1,
-            bottom: -aspect,
-            top: aspect
+            left: x_min,
+            right: x_min + this.canvas.clientWidth,
+            bottom: y_min,
+            top: y_min + this.canvas.clientHeight
         };
     }
 

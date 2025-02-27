@@ -494,8 +494,8 @@ function updateSpeed() {
         if (speed_y < 0) speed_y = Math.min(0, speed_y + 2);
     }
 
-    x_min -= speed_x;
-    y_min -= speed_y;
+    x_min = Math.min(total_map_pixels, Math.max(0, x_min - speed_x));
+    y_min = Math.min(total_map_pixels, Math.max(0, y_min - speed_y));
 
     setTimeout(() => {
         updateSpeed();

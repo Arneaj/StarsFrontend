@@ -1,3 +1,4 @@
+// music.js
 // Handles audio functions
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let oscillators = [];
@@ -30,18 +31,39 @@ export function stopDrone() {
 }
 
 export function addOctaveNote() {
-    if (octaveOscillators.length > 0) return;
+    // Debug logs
+    console.log("addOctaveNote called");
+    if (octaveOscillators.length > 0) {
+        console.log("Already has octave note, octaveOscillators.length = ", octaveOscillators.length, ", skipping");
+        return;
+    }
+
+    // Resume the audio context if it's suspended
+    if (audioContext.state === 'suspended') {
+        console.log("Resuming audio context"); // Add this debug log
+        audioContext.resume();
+    }
+
     let freq = baseFrequencies[Math.floor(Math.random() * baseFrequencies.length)] * 2;
     let osc = audioContext.createOscillator();
     let gainNode = audioContext.createGain();
+
     osc.type = "sine";
     osc.frequency.setValueAtTime(freq, audioContext.currentTime);
     gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 1);
+
     osc.connect(gainNode).connect(audioContext.destination);
     osc.start();
+
+    console.log("Started oscillation at freq = ", freq);
     octaveOscillators.push({ oscillator: osc, gainNode: gainNode, frequency: freq });
-    setTimeout(() => { fadeOutAndStop(octaveOscillators[0], 8); octaveOscillators = []; }, 8000);
+
+    setTimeout(() => {
+        console.log("Cleaning up octave note"); // Add this debug log
+        fadeOutAndStop(octaveOscillators[0], 8);
+        octaveOscillators = [];
+    }, 8000);
 }
 
 export function removeOctaveNote() {

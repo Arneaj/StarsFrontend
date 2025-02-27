@@ -109,7 +109,7 @@ class StarStreamManager {
         for (let i = 0; i < nb_stars; i++) {
             if (starPositions[2 * i] === star.x && 
                 starPositions[2 * i + 1] === star.y) {
-                console.warn('Duplicate star position detected');
+                console.log('Duplicate star position detected');
                 return;
             }
         }
@@ -118,7 +118,12 @@ class StarStreamManager {
         starMessages.push(star.message);
         nb_stars = starPositions.length / 2;
 
-        window.addOctaveNote();
+        console.log("Attempting to play sound");
+        if (typeof window.addOctaveNote === 'function') {
+            window.addOctaveNote();
+        } else {
+            console.error("addOctaveNote is not available on window object");
+        }
     
         // Update the CPU buffer
         starPositionsCPUBuffer = new Float32Array(starPositions);
@@ -511,7 +516,6 @@ async function fetchInitialStars() {
 }
 
 
-
 // Debug buttons to add/remove stars.
 
 /***********************************************************************
@@ -523,7 +527,6 @@ function addRandomStar() {
     // Message with star ID
     const msg = `Random star! Random number: ${Math.floor(Math.random() * 1000)}`;
     createStar(Number(rx), Number(ry), msg);
-    window.addOctaveNote();
 
 }
 

@@ -77,6 +77,7 @@
       <button onclick="stopDrone()">Mute Sound</button>
       <button onclick="addOctaveNote()">Add Octave Note</button>
       <button onclick="removeOctaveNote()">Remove Octave Note</button>
+      <button onclick="testSound()">Test Sound</button>
     </div>
 
     <canvas id="stars_canvas"></canvas>
@@ -87,5 +88,33 @@
     </div>
     <script src="music.js"></script>
     <script src="canvas.js"></script>
+    <script>
+      function testSound() {
+          // First, resume the audio context
+          if (audioContext.state === 'suspended') {
+              audioContext.resume();
+          }
+          
+          console.log("Testing sound...");
+          console.log("Audio context state:", audioContext.state);
+          
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          
+          gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+          
+          osc.frequency.setValueAtTime(440, audioContext.currentTime);
+          osc.start();
+          
+          setTimeout(() => {
+              gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.5);
+              setTimeout(() => osc.stop(), 600);
+          }, 200);
+      }
+      </script>
   </body>
 </html>

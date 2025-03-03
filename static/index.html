@@ -43,6 +43,7 @@
             border-radius: 5px;
             border: 0px solid #cfbfce71;
             padding: 1%;
+            cursor: pointer;
         }
         .message_input {
             width: 80%;
@@ -124,7 +125,9 @@
 
     <canvas id="stars_canvas"></canvas>
 
+    <!-- Star info / Add star popup -->
     <div id="info"></div>
+
     <div id="error-box">
         <span class="error-box-title">Error messages, if any, go here.</span>
     </div>
@@ -167,33 +170,65 @@
     <script src="auth.js"></script>
 
     <script type="module">
-        import { 
-            clickFunction, getMessage, closeWindow, submitMessage, 
-            starsGraphics, fetchInitialStars, addRandomStar, 
-            removeStarByIDPrompt, removeAllStars 
+        import {
+            starsGraphics, getMessage, clickFunction,
+            addRandomStar, removeStarByIDPrompt, removeAllStars,
+            mouseDown, mouseDownAndMove
         } from "./canvas.js";
 
-        // Attach event listeners dynamically
-        document.addEventListener("mousemove", getMessage);
-        document.addEventListener("click", clickFunction);
-
-        document.getElementById("add_random_star")?.addEventListener("click", addRandomStar);
-        document.getElementById("remove_star")?.addEventListener("click", removeStarByIDPrompt);
-        document.getElementById("remove_all_stars")?.addEventListener("click", removeAllStars);
-
-        document.getElementById("auth-button")?.addEventListener("click", () => showModal('login-modal'));
-        document.getElementById("open_register")?.addEventListener("click", () => showModal('register-modal'));
-        document.getElementById("open_login")?.addEventListener("click", () => showModal('login-modal'));
-
-        document.querySelectorAll(".close-modal").forEach(button => {
-            button.addEventListener("click", closeWindow);
-        });
-
-        // Attach event listeners for submit buttons dynamically
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("submit_button")?.addEventListener("click", submitMessage);
-            document.getElementById("close_button")?.addEventListener("click", closeWindow);
+            // Initialize WebGL + SSE
+            try {
+                starsGraphics();
+            } catch (e) {
+                const errorBoxDiv = document.getElementById("error-box");
+                const errorSpan = document.createElement("p");
+                errorSpan.innerText = `Uncaught JS exception: ${e}`;
+                errorBoxDiv.appendChild(errorSpan);
+                console.error(e);
+            }
+
+            // Attach events to the canvas
+            const canvas = document.getElementById("stars_canvas");
+            if (canvas) {
+                canvas.addEventListener("mousemove", getMessage);
+                canvas.addEventListener("click", clickFunction);
+
+                // If you want drag/pan with mousedown, you can do something like:
+                canvas.addEventListener("mousedown", mouseDown);
+                canvas.addEventListener("mousemove", mouseDownAndMove);
+            }
+
+            // Debug button events
+            document.getElementById("add_random_star")?.addEventListener("click", addRandomStar);
+            document.getElementById("remove_star")?.addEventListener("click", removeStarByIDPrompt);
+            document.getElementById("remove_all_stars")?.addEventListener("click", removeAllStars);
+
+            // Auth modal open
+            document.getElementById("auth-button")?.addEventListener("click", () => showModal('login-modal'));
+            document.getElementById("open_register")?.addEventListener("click", () => showModal('register-modal'));
+            document.getElementById("open_login")?.addEventListener("click", () => showModal('login-modal'));
+
+            // Auth modal close
+            document.querySelectorAll(".close-modal").forEach(button => {
+                button.addEventListener("click", closeModal);
+            });
         });
+
+        // Show a modal by ID
+        window.showModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "block";
+        };
+
+        // Hide whichever modal "Close" button was clicked
+        window.closeModal = function(event) {
+            event.stopPropagation();
+            const modal = event.target.closest(".modal");
+            if (modal) {
+                modal.style.display = "none";
+            }
+        };
     </script>
 
 </body>

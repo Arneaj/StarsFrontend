@@ -1,56 +1,60 @@
-// canvas.js
+// Run with: 
+// cd static
+// python3 -m http.server 3000
+
 
 /***************************************************************************
- * Global variables
+ * You had these global variables
  ***************************************************************************/
 const starPositions = [];
 const starMessages = [];
 var nb_stars;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("stars_canvas");
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
+
+    canvas.addEventListener("mousemove", getMessage);
+    canvas.addEventListener("click", clickFunction);
+});
+
+
+export { clickFunction, getMessage, closeWindow, submitMessage, starsGraphics, fetchInitialStars, addRandomStar, removeStarByIDPrompt, removeAllStars };
+
+
+var x_min = 5000;
+var y_min = 5000;
+
+var zoom = 0;
+
+const total_map_pixels = 10000;
+
 const MAX_STARS = 1000; // ensure this is defined somewhere
 const RECONNECTION_TIMEOUT = 3000; // e.g. 3 seconds
 
-// Backend URL
+// Should these be global variables? starPositionsCPUBuffer must be referenced by multiple functions.
+// Up to you Arnaud! 
 const BACKEND_URL = "http://127.0.0.1:8000";
 let starPositionsCPUBuffer = new Float32Array(starPositions);
-// Hello!
+
+
+
+  
 
 /***************************************************************************
- * StarStreamManager class
+ * Imports
  ***************************************************************************/
-
+import { BackendCommunicator } from "./backend_communicator.js";
 import { StarStreamManager } from "./SSE.js";
 
 /***************************************************************************
- * Create star function (uses auth token from localStorage)
+ * WebGL Initialization and Rendering
  ***************************************************************************/
-async function createStar(x, y, message) {
-    const token = localStorage.getItem('token');
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-    
-    try {
-        const resp = await fetch(`${BACKEND_URL}/stars`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ x, y, message }),
-        });
-        if (!resp.ok) {
-            console.error("Failed to create star:", resp.status, await resp.text());
-        } else {
-            const newStar = await resp.json();
-            console.log("Created star:", newStar);
-        }
-    } catch (e) {
-        console.error("Error creating star:", e);
-    }
-}
-
-/***************************************************************************
- * WebGL code
- ***************************************************************************/
-function showError(errorText) {
+function showError(errorText) 
+{
     const errorBoxDiv = document.getElementById('error-box');
     const errorSpan = document.createElement('p');
     errorSpan.innerText = errorText;
@@ -58,7 +62,8 @@ function showError(errorText) {
     console.error(errorText);
 }
   
-async function starsGraphics() {
+async function starsGraphics() 
+{
     const canvas = document.getElementById('stars_canvas');
     if (!canvas) {
       showError('Could not find HTML canvas element');
@@ -71,7 +76,7 @@ async function starsGraphics() {
     // 2) Load existing stars that were in the DB before page load
     await fetchInitialStars();
   
-    // 3) Proceed with WebGL initialization/loop
+    // 3) Proceed with your WebGL initialization/loop:
     const gl = canvas.getContext('webgl2');
     if (!gl) {
         const isWebGl1Supported = !!(document.createElement('canvas')).getContext('webgl');
@@ -227,12 +232,6 @@ async function starsGraphics() {
     requestAnimationFrame(render);
 }
 
-try {
-    starsGraphics();
-} catch (e) {
-    showError(`Uncaught JS exception: ${e}`);
-}
-
 /***************************************************************************
  * Message handling and UI
  ***************************************************************************/
@@ -291,38 +290,39 @@ function clickFunction(event) {
     const canvas = document.getElementById('stars_canvas');
 
     const initial_opacity = info_box.style.opacity;
+
     info_box.style.animation = "0.2s smooth-disappear ease-out";
     info_box.style.opacity = "0";
 
     let x = 2*event.clientX / canvas.clientWidth - 1;
     let y = 1 - 2*event.clientY / canvas.clientHeight;
+    let text = info_box.innerHTML;
     
-    if (initial_opacity === "0") {
-        // This means we are opening the box to add a new star
+    if (initial_opacity === "0") 
+    {
         last_clicked_x = x;
         last_clicked_y = y;
 
-        info_box.innerHTML = "<b>Add a star</b><br><br>";
-        info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`;
+        info_box.innerHTML = "<b>Add a star</b><br><br>"
+        info_box.innerHTML += `<input type="text" id="star_message" name="star_message" class="button message_input">`
 
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
 
-        info_box.innerHTML += `
-            <br><br>
+        info_box.innerHTML +=  `<br><br>
             <button id="submit_button" class="button submit_button" onclick="submitMessage(event)">
                 Submit message
             </button>
             <button id="close_button" class="button close_button" onclick="closeWindow(event)">
                 Close
             </button>`;
-    } else {
-        // We are opening the box for an existing star (like/dislike, etc.)
+    } 
+    else 
+    {
         info_box.style.animation = "0.2s smooth-appear ease-in";
         info_box.style.opacity = "1";
 
-        info_box.innerHTML += `
-            <br><br>
+        info_box.innerHTML +=  `<br><br>
             <button id="like_button" class="button like_button">
                 Like
             </button>
@@ -348,38 +348,32 @@ function closeWindow(event) {
     event.stopPropagation();
 }
 
-function submitMessage(event) {
+async function submitMessage(event) {
     const message_input = document.getElementById('star_message');
     let msg = message_input.value;
-    createStar(last_clicked_x, last_clicked_y, msg);
+    await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, msg);
     closeWindow(event);
 }
+
+
+
 
 /***************************************************************************
  * Fetch initial stars on page load
  ***************************************************************************/
 async function fetchInitialStars() {
-    try {
-        const resp = await fetch(`${BACKEND_URL}/stars`);
-        if (!resp.ok) {
-            console.error("Failed to fetch initial stars:", resp.status, await resp.text());
-            return;
-        }
-        const stars = await resp.json(); // an array of {id, x, y, message}
+    const stars = await BackendCommunicator.fetchInitialStars();
+    if (stars) {
         for (const s of stars) {
             starPositions.push(s.x, s.y);
             starMessages.push(s.message);
         }
         nb_stars = starPositions.length / 2;
-
-        // Update the CPU buffer
         starPositionsCPUBuffer = new Float32Array(starPositions);
-
         console.log("Loaded", nb_stars, "stars initially");
-    } catch (err) {
-        console.error("Error fetching initial stars:", err);
     }
 }
+
 
 /***************************************************************************
  * Debug buttons to add/remove stars
@@ -388,10 +382,10 @@ function addRandomStar() {
     const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
     const ry = (Math.random() * 2 - 1).toFixed(2);
     const msg = `Random star! Random number: ${Math.floor(Math.random() * 1000)}`;
-    createStar(Number(rx), Number(ry), msg);
+    BackendCommunicator.createStar(Number(rx), Number(ry), msg);
 }
 
-function removeStarByIDPrompt() {
+async function removeStarByIDPrompt() {
     const idStr = prompt("Enter the star ID to remove:");
     if (!idStr) return;
     const starID = parseInt(idStr, 10);
@@ -399,62 +393,26 @@ function removeStarByIDPrompt() {
         console.error("Invalid ID:", idStr);
         return;
     }
-    removeStarByID(starID);
-}
-
-async function removeStarByID(starId) {
-    try {
-        const resp = await fetch(`${BACKEND_URL}/stars/${starId}`, {
-            method: "DELETE"
-        });
-        if (!resp.ok) {
-            console.error("Failed to remove star ID=" + starId, resp.status, await resp.text());
-        } else {
-            const removed = await resp.json();
-            console.log("Removed star:", removed);
-        }
-    } catch (e) {
-        console.error("Error removing star ID=" + starId, e);
-    }
+    await BackendCommunicator.removeStarByID(starID);
 }
 
 async function removeAllStars() {
-    try {
-        const resp = await fetch(`${BACKEND_URL}/stars`, {
-            method: "DELETE"
-        });
-        if (!resp.ok) {
-            console.error("Failed to clear all stars:", resp.status, await resp.text());
-            return;
-        }
-
-        // Clear frontend state
+    await BackendCommunicator.removeAllStars();
         starPositions.length = 0;
         starMessages.length = 0;
         nb_stars = 0;
-
-        // Update the CPU buffer
         starPositionsCPUBuffer = new Float32Array(starPositions);
-
-        console.log("Removed all stars");
-    } catch (e) {
-        console.error("Error clearing all stars:", e);
-    }
 }
 
+
 /***************************************************************************
- * Helper function to fetch star details by ID
+ * Start the application
  ***************************************************************************/
-async function fetchStarDetails(starId) {
-    try {
-        const response = await fetch(`${BACKEND_URL}/stars/${starId}`);
-        if (!response.ok) {
-            console.error("Failed to fetch star details:", response.status, await response.text());
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching star details:", error);
-        return null;
-    }
+// document.addEventListener("mousemove", getMessage);  
+// document.addEventListener("click", clickFunction);
+
+try {
+    starsGraphics();
+} catch (e) {
+    showError(`Uncaught JS exception: ${e}`);
 }

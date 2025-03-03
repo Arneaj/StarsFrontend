@@ -37,7 +37,6 @@
         @keyframes smooth-disappear {
             from { opacity: 1; } to { opacity: 0; }
         }
-
         .button {
             background-color: #060005;
             color: #cfbfced5;
@@ -48,7 +47,6 @@
         .message_input {
             width: 80%;
         }
-
         /* Controls panel */
         #controls {
             position: absolute;
@@ -62,7 +60,6 @@
         #controls button {
             margin-right: 10px;
         }
-
         /* Modal Styling */
         .modal {
             display: none;
@@ -78,19 +75,16 @@
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
         }
-
         .modal-content {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-
         .modal input {
             padding: 10px;
             border: none;
             border-radius: 5px;
         }
-
         .modal button {
             padding: 10px;
             background: #444;
@@ -99,11 +93,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
         .modal button:hover {
             background: #555;
         }
-
         /* Login/Register Button */
         #auth-button {
             position: absolute;
@@ -121,13 +113,13 @@
         }
     </style>
 </head>
-<body onmousemove="getMessage(event)" onclick="clickFunction(event)">
+<body>
 
     <!-- Controls Panel -->
     <div id="controls">
-        <button onclick="addRandomStar()">Add Random Star</button>
-        <button onclick="removeStarByIDPrompt()">Remove Star By ID</button>
-        <button onclick="removeAllStars()">Remove All Stars</button>
+        <button id="add_random_star">Add Random Star</button>
+        <button id="remove_star">Remove Star By ID</button>
+        <button id="remove_all_stars">Remove All Stars</button>
     </div>
 
     <canvas id="stars_canvas"></canvas>
@@ -138,9 +130,7 @@
     </div>
 
     <!-- Authentication Button -->
-    <button id="auth-button" onclick="showModal('login-modal')">
-        Login/Register
-    </button>
+    <button id="auth-button">Login/Register</button>
 
     <!-- Authentication Modals -->
     <div id="auth-modals">
@@ -153,8 +143,8 @@
                     <input type="password" id="login-password" placeholder="Password" required>
                     <button type="submit">Login</button>
                 </form>
-                <button onclick="showModal('register-modal')">Create Account</button>
-                <button onclick="hideModals()">Close</button>
+                <button id="open_register">Create Account</button>
+                <button class="close-modal">Close</button>
             </div>
         </div>
 
@@ -167,18 +157,44 @@
                     <input type="password" id="register-password" placeholder="Password" required>
                     <button type="submit">Register</button>
                 </form>
-                <button onclick="showModal('login-modal')">Already have an account?</button>
-                <button onclick="hideModals()">Close</button>
+                <button id="open_login">Already have an account?</button>
+                <button class="close-modal">Close</button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <!-- Load the authentication logic first -->
     <script src="auth.js"></script>
-    <!-- Then load our main Canvas/Stars logic -->
-    <script src="canvas.js"></script>
 
+    <script type="module">
+        import { 
+            clickFunction, getMessage, closeWindow, submitMessage, 
+            starsGraphics, fetchInitialStars, addRandomStar, 
+            removeStarByIDPrompt, removeAllStars 
+        } from "./canvas.js";
+
+        // Attach event listeners dynamically
+        document.addEventListener("mousemove", getMessage);
+        document.addEventListener("click", clickFunction);
+
+        document.getElementById("add_random_star")?.addEventListener("click", addRandomStar);
+        document.getElementById("remove_star")?.addEventListener("click", removeStarByIDPrompt);
+        document.getElementById("remove_all_stars")?.addEventListener("click", removeAllStars);
+
+        document.getElementById("auth-button")?.addEventListener("click", () => showModal('login-modal'));
+        document.getElementById("open_register")?.addEventListener("click", () => showModal('register-modal'));
+        document.getElementById("open_login")?.addEventListener("click", () => showModal('login-modal'));
+
+        document.querySelectorAll(".close-modal").forEach(button => {
+            button.addEventListener("click", closeWindow);
+        });
+
+        // Attach event listeners for submit buttons dynamically
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("submit_button")?.addEventListener("click", submitMessage);
+            document.getElementById("close_button")?.addEventListener("click", closeWindow);
+        });
+    </script>
 
 </body>
 </html>

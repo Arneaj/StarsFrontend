@@ -242,7 +242,7 @@ async function checkMissingMessages(canvas) {
                 // Need to fetch star's message
                 const starId = starIDs[i];
                 try {
-                    const fullStar = await BackendCommunicator.fetchStarByID(starId);
+                    const fullStar = await BackendCommunicator.fetchStarDetails(starId);
                     if (fullStar && typeof fullStar.message === 'string') {
                         starMessages[i] = fullStar.message;
                     }

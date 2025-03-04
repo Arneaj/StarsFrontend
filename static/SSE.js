@@ -1,8 +1,15 @@
 /***************************************************************************
- * SSE Manager - Handles real-time updates via Server-Sent Events
+ * SSE Manager - minimal data from SSE, then fetch full data if in viewport
  ***************************************************************************/
-
 import { BackendCommunicator } from "./backend_communicator.js";
+import {
+  starIDs,
+  starPositions,
+  starMessages,
+  updateStarPositionsBuffer,
+  isInViewport,
+  RECONNECTION_TIMEOUT
+} from "./globals.js";
 
 export class StarStreamManager {
   constructor(canvas) {
@@ -14,44 +21,94 @@ export class StarStreamManager {
 
   _connect() {
     this.eventSource = BackendCommunicator.createEventSource();
+
+    // All SSE events come in here as onmessage (the server does not use named events).
+    this.eventSource.onmessage = async (event) => {
+      console.log("Raw SSE data:", event.data);  // 🔍 Debugging output
+      
+      try {
+        const fixedJsonString = event.data.replace(/'/g, '"');  
+        const parsed = JSON.parse(fixedJsonString);
+        if (parsed.event === 'add') {
+          this._handleAddEvent(parsed.star);
+        }
+        else if (parsed.event === 'remove') {
+          this._handleStarRemoval(parsed.star?.id);
+        }
+      } catch (error) {
+        console.error("Failed to parse SSE message:", error, "Received:", event.data);
+      }
+    };
     
-    this.eventSource.addEventListener('star', (event) => {
-      const newStar = JSON.parse(event.data);
-      starPositions.push(newStar.x, newStar.y);
-      starMessages.push(newStar.message);
-      nb_stars = starPositions.length / 2;
-      starPositionsCPUBuffer = new Float32Array(starPositions);
-    });
 
-    this.eventSource.addEventListener('star-removed', (event) => {
-      const removedStar = JSON.parse(event.data);
-      this._handleStarRemoval(removedStar.id);
-    });
-
-    this.eventSource.onerror = () => {
+    this.eventSource.onerror = (error) => {
+      console.error("SSE error:", error);
       this._scheduleReconnection();
     };
   }
 
+  _handleAddEvent(starData) {
+    // starData: { id, x, y }, no message
+    if (!starData || typeof starData.x !== 'number' || typeof starData.y !== 'number' || !starData.id) {
+      console.warn("Malformed star SSE event:", starData);
+      return;
+    }
+
+    // 1) Always store the star in arrays, with message = null
+    const i = this._addStarMinimal(starData.id, starData.x, starData.y);
+
+    // 2) If it's in viewport, fetch message
+    if (isInViewport(this.canvas, starData.x, starData.y)) {
+      this._fetchStarMessage(i, starData.id);
+    }
+  }
+
+  _addStarMinimal(id, x, y) {
+    // For convenience, track the index of this star in the arrays
+    // so we know where to put the message.
+    starIDs.push(id);
+    starPositions.push(x, y);
+    starMessages.push(null);  // We haven't fetched it yet
+    updateStarPositionsBuffer();
+
+    // Return the index in starIDs/starPositions/starMessages
+    return (starIDs.length - 1);
+  }
+
+  async _fetchStarMessage(index, starId) {
+    try {
+      const fullStar = await BackendCommunicator.fetchStarDetails(starId);
+      if (!fullStar || typeof fullStar.x !== 'number' || typeof fullStar.y !== 'number') {
+        console.warn("fetchStarDetails returned invalid star:", fullStar);
+        return;
+      }
+      // Update the star's message in the array
+      starMessages[index] = fullStar.message;
+      // No need to update starPositionsBuffer, because x,y didn't change
+    } catch (err) {
+      console.error("Failed to fetch full star details:", err);
+    }
+  }
+
   _handleStarRemoval(starId) {
-    // Note: Frontend needs ID tracking for proper implementation
-    // This is a placeholder for actual removal logic
-    console.warn("Star removal not fully implemented - refetching all stars");
+    console.warn(`Star removal (ID=${starId}) not fully implemented - refetching all stars`);
     this._refreshStarData();
   }
 
   async _refreshStarData() {
+    // fetchInitialStars returns an array of { id, x, y, message }
     const stars = await BackendCommunicator.fetchInitialStars();
+    // Clear all local arrays
+    starIDs.length = 0;
     starPositions.length = 0;
     starMessages.length = 0;
-    
-    stars.forEach(star => {
-      starPositions.push(star.x, star.y);
-      starMessages.push(star.message);
-    });
-    
-    nb_stars = starPositions.length / 2;
-    starPositionsCPUBuffer = new Float32Array(starPositions);
+
+    for (const s of stars) {
+      starIDs.push(s.id);
+      starPositions.push(s.x, s.y);
+      starMessages.push(s.message); // we already have the message
+    }
+    updateStarPositionsBuffer();
   }
 
   _scheduleReconnection() {

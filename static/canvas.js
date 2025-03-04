@@ -1,18 +1,21 @@
 /***************************************************************************
  * Global variables
  ***************************************************************************/
-const starPositions = [];
-const starMessages = [];
-var nb_stars;
-
-var x_min = 5000;
-var y_min = 5000;
-
-const total_map_pixels = 10000;
-var zoom = 0;
-
-const MAX_STARS = 1000;
-const RECONNECTION_TIMEOUT = 3000;
+import {
+    starIDs,
+    starPositions,
+    starMessages,
+    nb_stars,
+    starPositionsCPUBuffer,
+    updateStarPositionsBuffer,
+    x_min,
+    y_min,
+    total_map_pixels,
+    RECONNECTION_TIMEOUT,
+    isInViewport,
+    updateMinCoords,
+    update_nb_stars
+  } from './globals.js';
 
 /***************************************************************************
  * Imports
@@ -20,8 +23,6 @@ const RECONNECTION_TIMEOUT = 3000;
 import { BackendCommunicator } from "./backend_communicator.js";
 import { StarStreamManager } from "./SSE.js";
 
-// We'll recreate starPositionsCPUBuffer whenever starPositions changes
-let starPositionsCPUBuffer = new Float32Array(starPositions);
 
 /***************************************************************************
  * WebGL Initialization and Rendering
@@ -151,7 +152,7 @@ export async function starsGraphics() {
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
 
-    nb_stars = starPositions.length / 2;
+    update_nb_stars(starPositions.length / 2);
 
     // Uniform locations
     const starUniform = gl.getUniformLocation(program, "star_positions");
@@ -185,6 +186,8 @@ export async function starsGraphics() {
         cursorY = e.clientY;
     });
 
+    // Throttling the "fetch missing messages" check
+    let lastViewportCheckTime = 0;
     function drawFrame() {
         const now = performance.now() * 0.001; // seconds
         gl.useProgram(program);
@@ -214,10 +217,43 @@ export async function starsGraphics() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
+        // THROTTLE: check once every 0.5s
+        if (now - lastViewportCheckTime > 0.5) {
+            checkMissingMessages(canvas);
+            lastViewportCheckTime = now;
+        }
+
         requestAnimationFrame(drawFrame);
     }
     requestAnimationFrame(drawFrame);
 }
+
+/**
+ * Goes through all known stars. If starMessages[i] is null,
+ * but the star is in viewport, fetch that star's message now.
+ */
+async function checkMissingMessages(canvas) {
+    for (let i = 0; i < nb_stars; i++) {
+        if (starMessages[i] === null) {
+            const sx = starPositions[2*i];
+            const sy = starPositions[2*i + 1];
+
+            if (isInViewport(canvas, sx, sy)) {
+                // Need to fetch star's message
+                const starId = starIDs[i];
+                try {
+                    const fullStar = await BackendCommunicator.fetchStarByID(starId);
+                    if (fullStar && typeof fullStar.message === 'string') {
+                        starMessages[i] = fullStar.message;
+                    }
+                } catch(e) {
+                    console.error("Error fetching star message for ID=", starId, e);
+                }
+            }
+        }
+    }
+}
+
 
 /***************************************************************************
  * Star popup message handling
@@ -345,8 +381,10 @@ function updateSpeed() {
         speed_y *= 0.9;
     }
 
-    x_min = Math.min(total_map_pixels, Math.max(0, x_min - 3*speed_x));
-    y_min = Math.min(total_map_pixels, Math.max(0, y_min - 3*speed_y));
+    const newXMin = Math.min(total_map_pixels, Math.max(0, x_min - 3*speed_x));
+    const newYMin = Math.min(total_map_pixels, Math.max(0, y_min - 3*speed_y));
+
+    updateMinCoords(newXMin, newYMin);  // Update x_min and y_min safely
 
     setTimeout(updateSpeed, 10);
 }
@@ -436,18 +474,22 @@ export async function submitMessage(event) {
  * Fetch initial stars on page load
  ***************************************************************************/
 export async function fetchInitialStars() {
+    // This returns the full star data, including messages
     const stars = await BackendCommunicator.fetchInitialStars();
     if (stars) {
-        for (const s of stars) {
-            starPositions.push(s.x, s.y);
-            starMessages.push(s.message);
-        }
-        nb_stars = starPositions.length / 2;
-        starPositionsCPUBuffer = new Float32Array(starPositions);
-        console.log("Loaded", nb_stars, "stars initially");
+      starIDs.length       = 0;
+      starPositions.length = 0;
+      starMessages.length  = 0;
+
+      for (const s of stars) {
+        starIDs.push(s.id);
+        starPositions.push(s.x, s.y);
+        starMessages.push(s.message);
+      }
+      updateStarPositionsBuffer();
+      console.log("Loaded", nb_stars, "stars initially");
     }
 }
-
 /***************************************************************************
  * Debug buttons
  ***************************************************************************/
@@ -473,6 +515,5 @@ export async function removeAllStars() {
     await BackendCommunicator.removeAllStars();
     starPositions.length = 0;
     starMessages.length = 0;
-    nb_stars = 0;
-    starPositionsCPUBuffer = new Float32Array(starPositions);
+    updateStarPositionsBuffer();
 }

@@ -150,6 +150,16 @@ async function createStar(x, y, message) {
         });
         if (!resp.ok) {
             console.error("Failed to create star:", resp.status, await resp.text());
+            return;
+        }
+
+        // Parse the JSON response
+        const responseData = await resp.json();
+
+        // Check if the response contains a "status" field (from the filter service)
+        if (responseData.status === false) {
+            // If the filter says the message is bad
+            showError(responseData.message);
         } else {
             const newStar = await resp.json();
             console.log("Created star:", newStar);
@@ -159,16 +169,38 @@ async function createStar(x, y, message) {
     }
 }
 
-/***************************************************************************
- * The rest is your existing WebGL code
- ***************************************************************************/
-function showError(errorText) 
-{
-    const errorBoxDiv = document.getElementById('error-box');
-    const errorSpan = document.createElement('p');
-    errorSpan.innerText = errorText;
-    errorBoxDiv.appendChild(errorSpan);
-    console.error(errorText);
+function showError(errorText) {
+    // Create a new div for the error box
+    const errorBox = document.createElement('div');
+    errorBox.id = 'error-message-box';
+    errorBox.innerText = errorText;
+
+    // Style the error box
+    errorBox.style.position = 'fixed';
+    errorBox.style.top = '50%';
+    errorBox.style.left = '50%';
+    errorBox.style.transform = 'translate(-50%, -50%)';
+    errorBox.style.backgroundColor = '#ff4444';
+    errorBox.style.color = '#ffffff';
+    errorBox.style.padding = '20px';
+    errorBox.style.borderRadius = '10px';
+    errorBox.style.zIndex = '10000';
+    errorBox.style.textAlign = 'center';
+    errorBox.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+    errorBox.style.opacity = '1';
+    errorBox.style.transition = 'opacity 1s ease-out';
+
+    // Append the error box to the body
+    document.body.appendChild(errorBox);
+
+    // Set a timeout to fade out the error box
+    setTimeout(() => {
+        errorBox.style.opacity = '0';
+        // Remove the error box from the DOM after the fade-out animation
+        setTimeout(() => {
+            document.body.removeChild(errorBox);
+        }, 1000); // 1 second for the fade-out animation
+    }, 3000); // 3 seconds before starting the fade-out
 }
   
 async function starsGraphics() 

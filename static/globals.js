@@ -20,7 +20,6 @@ export let x_min = 5000;
 export let y_min = 5000;
 
 export const total_map_pixels = 10000;
-export let zoom = 0;
 
 export const MAX_STARS = 1000;
 export const RECONNECTION_TIMEOUT = 3000;

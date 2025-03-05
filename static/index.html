@@ -177,7 +177,7 @@
         import {
             starsGraphics, getMessage, clickFunction,
             addRandomStar, removeStarByIDPrompt, removeAllStars,
-            mouseDown, mouseDownAndMove
+            mouseDown, mouseDownAndMove, zoomAction
         } from "./canvas.js";
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -201,6 +201,8 @@
                 // If you want drag/pan with mousedown, you can do something like:
                 canvas.addEventListener("mousedown", mouseDown);
                 canvas.addEventListener("mousemove", mouseDownAndMove);
+
+                canvas.addEventListener("wheel", zoomAction);
             }
 
             // Debug button events

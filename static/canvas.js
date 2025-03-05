@@ -15,8 +15,7 @@ import {
     RECONNECTION_TIMEOUT,
     isInViewport,
     updateMinCoords,
-    update_nb_stars,
-    starLastLikeTime
+    update_nb_stars
   } from './globals.js';
 
 /***************************************************************************
@@ -89,6 +88,7 @@ export async function starsGraphics() {
     uniform float star_last_likes[200];
 
     uniform float current_time;
+    uniform float smooth_current_time;
     uniform vec2 cursor_position;
 
     in vec2 position;
@@ -108,6 +108,8 @@ export async function starsGraphics() {
 
         float d;
         float delta_time;
+        float time_falloff;
+
         vec2 uv_star_position;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
@@ -117,11 +119,14 @@ export async function starsGraphics() {
             d = distance(uv_position, uv_star_position);
 
             delta_time = current_time - star_last_likes[i];
-            delta_time = clamp(1.0-delta_time*0.00001157407, 0.0, 1.0);  // disappears over 24h
-            
-            outputColor.xyz += (1.0 + 0.1 * sin(10.0 * current_time))
-                           * vec3(1.0, 0.9, 0.7)
-                           * delta_time
+            time_falloff = clamp(1.0-delta_time*0.00001157407, 0.0, 1.0);  // disappears over 24h
+
+            outputColor.xyz += (1.0 + 0.1 * sin(mod(10.0 * smooth_current_time, 6.28318530718)))
+                           * ( 
+                                vec3(1.0, 0.8, 0.6) * time_falloff + 
+                                vec3(1.0, 0.9, 1.0) * (1.0-time_falloff) 
+                             )
+                           * time_falloff
                            / pow(d * 0.0005, 1.8);
         }
 
@@ -175,6 +180,8 @@ export async function starsGraphics() {
     const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
 
     const timeUniform = gl.getUniformLocation(program, "current_time");
+    const smoothTimeUniform = gl.getUniformLocation(program, "smooth_current_time");
+
     const starCountUniform = gl.getUniformLocation(program, "nb_stars");
 
     const xMinUniform = gl.getUniformLocation(program, "x_min");
@@ -206,9 +213,7 @@ export async function starsGraphics() {
 
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
-    function drawFrame() {
-        let now = Date.now() * 0.001 - 1735689600; // seconds   
-        
+    function drawFrame() {        
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);
 
@@ -222,6 +227,8 @@ export async function starsGraphics() {
             0
         );
 
+        let smooth_time = performance.now() * 0.001;
+
         gl.uniform1f(xMinUniform, x_min);
         gl.uniform1f(xMaxMinusXMinUniform, canvas.clientWidth);
         gl.uniform1f(yMinUniform, y_min);
@@ -229,7 +236,8 @@ export async function starsGraphics() {
 
         gl.uniform2f(cursorUniform, cursorX + x_min, cursorY + y_min);
 
-        gl.uniform1f(timeUniform, now);
+        gl.uniform1f(timeUniform, Date.now() * 0.001 - 1735689600.0);  // seconds since 01/01/2025
+        gl.uniform1f(smoothTimeUniform, smooth_time);  // seconds since program started. Used for smooth animations.
 
         gl.uniform1i(starCountUniform, nb_stars);
 
@@ -240,9 +248,9 @@ export async function starsGraphics() {
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
         // THROTTLE: check once every 0.5s
-        if (now - lastViewportCheckTime > 0.5) {
+        if (smooth_time - lastViewportCheckTime > 0.5) {
             checkMissingMessages(canvas);
-            lastViewportCheckTime = now;
+            lastViewportCheckTime = smooth_time;
         }
 
         requestAnimationFrame(drawFrame);
@@ -469,6 +477,23 @@ export function clickFunction(event) {
     submitBtn?.addEventListener("click", submitMessage);
     closeBtn?.addEventListener("click", closeStarPopup);
 }
+
+
+var zoom = 1.0;
+
+
+/**
+ * Called when using the wheel up and down to modify the zoom value
+ */
+export function zoomAction(event) {
+    let dir = Math.sign(event.deltaY);
+    
+    if (dir < 0) zoom = Math.min(zoom*1.01, 5.0);
+    if (dir > 0) zoom = Math.max(zoom/1.01, 0.2);
+
+    console.log(zoom);
+}
+
 
 /**
  * Closes the star info/add popup (the #info element).

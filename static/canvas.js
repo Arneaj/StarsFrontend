@@ -197,12 +197,14 @@ export async function starsGraphics() {
     window.addEventListener("mousemove", (e) => {
         cursorX = e.clientX;
         cursorY = e.clientY;
-    });
+    });  
+
+    for (let i=0; i<nb_stars; i++) console.log(`now - star ${i}'s last like`, Date.now() * 0.001 - starLastLikeTime[i]);
 
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
     function drawFrame() {
-        const now = Date.now() * 0.001; // seconds        
+        const now = Date.now() * 0.001; // seconds   
         
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);
@@ -378,14 +380,14 @@ export function mouseDownAndMove(event) {
 
     let dx = x - last_x;
     let dy = y - last_y;
-    let dt = Math.max(0.001, t - last_t);
+    // let dt = Math.max(0.001, t - last_t);
 
     last_x = x;
     last_y = y;
     last_t = t;
 
-    speed_x += Math.sign(dx/dt) * Math.min(0.1, Math.abs(dx/dt));
-    speed_y += Math.sign(dy/dt) * Math.min(0.1, Math.abs(dy/dt));
+    speed_x += 0.5 * Math.sign(dx) * Math.min(0.1, Math.abs(dx)); // Math.sign(dx/dt) * Math.min(0.1, Math.abs(dx/dt));
+    speed_y += 0.5 * Math.sign(dy) * Math.min(0.1, Math.abs(dy)); // Math.sign(dy/dt) * Math.min(0.1, Math.abs(dy/dt));
 }
 
 

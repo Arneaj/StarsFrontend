@@ -1,69 +1,121 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8" />
     <title>Stars WebGL</title>
     <style>
-      html, body {
-        margin: 0; padding: 0;
-        width: 100%; height: 100%;
-        background: #2a2a2a;
-        overflow: hidden;
-      }
-      #stars_canvas {
-        width: 100%;
-        height: 100%;
-        /* Note to remove this background colour so it doesn't look terrible every refresh */
-        background-color: #da6052;
-        image-rendering: crisp-edges;
-      }
-      #error-box {
-        /* Note to remove this error colour so it doesn't look terrible every refresh */
-        color: #fd8080;
-        font-weight: 500;
-        font-size: 18pt;
-        border: 1px solid white;
-        padding: 25px;
-      }
-      #info {
-        position: absolute;
-        opacity: 0;
-        padding: 1%;
-        border-radius: 10px;
-        color: #cfbfced5;
-        background-color: #1a04167b;
-      }
-      @keyframes smooth-appear {
-        from { opacity: 0; } to { opacity: 1; }
-      }
-      @keyframes smooth-disappear {
-        from { opacity: 1; } to { opacity: 0; }
-      }
-
-      .button {
-        background-color: #060005;
-        color: #cfbfced5;
-        border-radius: 5px;
-        border: 0px solid #cfbfce71;
-        padding: 1%;
-      }
-      .message_input {
-        width: 80%;
-      }
-
-      /* ADD: A simple "controls" panel always visible for debugging */
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 9999;
-        background: rgba(0, 0, 0, 0.3);
-        padding: 10px;
-        color: #fff;
-      }
-      #controls button {
-        margin-right: 10px;
-      }
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background: #2a2a2a;
+            overflow: hidden;
+        }
+        #stars_canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #da6052;
+            image-rendering: crisp-edges;
+        }
+        #error-box {
+            color: #fd8080;
+            font-weight: 500;
+            font-size: 18pt;
+            border: 1px solid white;
+            padding: 25px;
+        }
+        #info {
+            position: absolute;
+            opacity: 0;
+            padding: 1%;
+            border-radius: 10px;
+            color: #cfbfced5;
+            background-color: #1a04167b;
+        }
+        @keyframes smooth-appear {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+        @keyframes smooth-disappear {
+            from { opacity: 1; } to { opacity: 0; }
+        }
+        .button {
+            background-color: #060005;
+            color: #cfbfced5;
+            border-radius: 5px;
+            border: 0px solid #cfbfce71;
+            padding: 1%;
+            cursor: pointer;
+        }
+        .button:hover {
+            background: #303030;
+        }
+        .message_input {
+            width: 80%;
+        }
+        /* Controls panel */
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            color: #fff;
+        }
+        #controls button {
+            margin-right: 10px;
+            width: 150px;
+        }
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+        }
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .modal input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        .modal button {
+            padding: 10px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal button:hover {
+            background: #555;
+        }
+        /* Login/Register Button */
+        #auth-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #444;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #auth-button:hover {
+            background: #555;
+        }
       @keyframes fadeOut {
         from { opacity: 1; }
         to { opacity: 0; }
@@ -73,23 +125,123 @@
         animation: fadeOut 1s ease-out 3s forwards;
       }
     </style>
-  </head>
-  <body onmousemove="getMessage(event); mouseDownAndMove(event)" onmousedown="mouseDown()" onclick="clickFunction(event)">
-    
-    <!-- The controls panel with Add/Remove buttons -->
+</head>
+<body>
+
+    <!-- Controls Panel -->
     <div id="controls">
-      <button onclick="addRandomStar()">Add Random Star</button>
-      <button onclick="removeStarByIDPrompt()">Remove Star By ID</button>
-      <button onClick="removeAllStars()">Remove All Stars</button>
+        <button id="add_random_star" class="button">Add Random Star</button>
+        <button id="remove_star" class="button">Remove Star By ID</button>
+        <button id="remove_all_stars" class="button">Remove All Stars</button>
     </div>
 
     <canvas id="stars_canvas"></canvas>
 
+    <!-- Star info / Add star popup -->
     <div id="info"></div>
+
     <div id="error-box">
-      <span class="error-box-title">Error messages, if any, go here.</span>
+        <span class="error-box-title">Error messages, if any, go here.</span>
     </div>
 
-    <script src="canvas.js"></script>
-  </body>
+    <!-- Authentication Button -->
+    <button id="auth-button">Login/Register</button>
+
+    <!-- Authentication Modals -->
+    <div id="auth-modals">
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <button id="open_register">Create Account</button>
+                <button class="close-modal">Close</button>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="register-modal" class="modal">
+            <div class="modal-content">
+                <h2>Register</h2>
+                <form id="register-form">
+                    <input type="email" id="register-email" placeholder="Email" required>
+                    <input type="password" id="register-password" placeholder="Password" required>
+                    <button type="submit">Register</button>
+                </form>
+                <button id="open_login">Already have an account?</button>
+                <button class="close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+
+    <script type="module">
+        import {
+            starsGraphics, getMessage, clickFunction,
+            addRandomStar, removeStarByIDPrompt, removeAllStars,
+            mouseDown, mouseDownAndMove
+        } from "./canvas.js";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Initialize WebGL + SSE
+            try {
+                starsGraphics();
+            } catch (e) {
+                const errorBoxDiv = document.getElementById("error-box");
+                const errorSpan = document.createElement("p");
+                errorSpan.innerText = `Uncaught JS exception: ${e}`;
+                errorBoxDiv.appendChild(errorSpan);
+                console.error(e);
+            }
+
+            // Attach events to the canvas
+            const canvas = document.getElementById("stars_canvas");
+            if (canvas) {
+                canvas.addEventListener("mousemove", getMessage);
+                canvas.addEventListener("click", clickFunction);
+
+                // If you want drag/pan with mousedown, you can do something like:
+                canvas.addEventListener("mousedown", mouseDown);
+                canvas.addEventListener("mousemove", mouseDownAndMove);
+            }
+
+            // Debug button events
+            document.getElementById("add_random_star")?.addEventListener("click", addRandomStar);
+            document.getElementById("remove_star")?.addEventListener("click", removeStarByIDPrompt);
+            document.getElementById("remove_all_stars")?.addEventListener("click", removeAllStars);
+
+            // Auth modal open
+            document.getElementById("auth-button")?.addEventListener("click", () => showModal('login-modal'));
+            document.getElementById("open_register")?.addEventListener("click", () => showModal('register-modal'));
+            document.getElementById("open_login")?.addEventListener("click", () => showModal('login-modal'));
+
+            // Auth modal close
+            document.querySelectorAll(".close-modal").forEach(button => {
+                button.addEventListener("click", closeModal);
+            });
+        });
+
+        // Show a modal by ID
+        window.showModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "block";
+        };
+
+        // Hide whichever modal "Close" button was clicked
+        window.closeModal = function(event) {
+            event.stopPropagation();
+            const modal = event.target.closest(".modal");
+            if (modal) {
+                modal.style.display = "none";
+            }
+        };
+    </script>
+
+</body>
 </html>

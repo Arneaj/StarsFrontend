@@ -2,7 +2,7 @@
  * Backend Communicator - Handles all backend communication logic
  ***************************************************************************/
 
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL = "http://127.0.0.1:7999";
 const RECONNECTION_TIMEOUT = 3000;
 
 export class BackendCommunicator {

@@ -3,12 +3,12 @@ export const starIDs = [];        // starIDs[i] => star's integer ID
 export const starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
 export const starMessages = [];   // starMessages[i] => string or null
 export const starLastLikeTime = [
-    1741327210,
-    1741234223,
-    1741174346,
-    1741238200,
-    1741177326,
-    1741143246
+    Date.now() * 0.001 - 10,  // 10s ago
+    Date.now() * 0.001 - 60,  // 1 min ago
+    Date.now() * 0.001 - 600,  // 10 min ago
+    Date.now() * 0.001 - 3600,  // 1h ago
+    Date.now() * 0.001 - 43200,  // 12h ago
+    Date.now() * 0.001 - 172800  // 2 days ago
 ];  // starCreationTime[i] => star's UNIX time of last like or creation.
 // TEMPORARY initialising the stars with fixed values, only 6 for now
 export let nb_stars = 0;

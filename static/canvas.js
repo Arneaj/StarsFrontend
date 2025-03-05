@@ -15,7 +15,8 @@ import {
     RECONNECTION_TIMEOUT,
     isInViewport,
     updateMinCoords,
-    update_nb_stars
+    update_nb_stars,
+    starLastLikeTime
   } from './globals.js';
 
 /***************************************************************************
@@ -105,17 +106,18 @@ export async function starsGraphics() {
         uv_position += vec2(x_min, y_min);
 
         float d;
+        float delta_time;
         vec2 uv_star_position;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
         for (int i = 0; i < nb_stars; i++) {
             uv_star_position = star_positions[i];
             d = distance(uv_position, uv_star_position);
+            delta_time = current_time - star_last_likes[i];
+            
             outputColor += (1.0 + 0.1 * sin(10.0 * current_time))
-                           * vec4(1.0, 0.9, 0.7, 1.0) 
-                           / pow(d * 0.0005, 1.8)
-                           * 10.0
-                           / (current_time - star_last_likes[i]);
+                           * vec4(1.0, 0.9, 0.7, 1.0)
+                           / pow(d * 0.0005, 1.8);
         }
 
         float d_from_cursor = max(1000.0, 1000.0 * distance(uv_cursor_position, uv_position));
@@ -151,7 +153,12 @@ export async function starsGraphics() {
     }
 
     // Full-screen quad
-    const quadVerts = new Float32Array([-1,1, -1,-1, 1,-1, 1,1]);
+    const quadVerts = new Float32Array([
+        -1, 1, 
+        -1,-1, 
+         1,-1, 
+         1, 1
+    ]);
     const quadBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
@@ -195,7 +202,7 @@ export async function starsGraphics() {
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
     function drawFrame() {
-        const now = Date.now() * 0.001; // seconds
+        const now = Date.now() * 0.001; // seconds        
         
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);

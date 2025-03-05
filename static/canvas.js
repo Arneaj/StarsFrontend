@@ -7,6 +7,7 @@ import {
     starMessages,
     nb_stars,
     starPositionsCPUBuffer,
+    starLastLikeCPUBuffer,
     updateStarPositionsBuffer,
     x_min,
     y_min,
@@ -83,7 +84,8 @@ export async function starsGraphics() {
     uniform float y_max_minus_y_min;
 
     uniform int nb_stars;
-    uniform vec2 star_positions[1000];
+    uniform vec2 star_positions[300];
+    uniform float star_last_likes[300];
 
     uniform float current_time;
     uniform vec2 cursor_position;
@@ -111,7 +113,9 @@ export async function starsGraphics() {
             d = distance(uv_position, uv_star_position);
             outputColor += (1.0 + 0.1 * sin(10.0 * current_time))
                            * vec4(1.0, 0.9, 0.7, 1.0) 
-                           / pow(d * 0.0005, 1.8);
+                           / pow(d * 0.0005, 1.8)
+                           * 10.0
+                           / (current_time - star_last_likes[i]);
         }
 
         float d_from_cursor = max(1000.0, 1000.0 * distance(uv_cursor_position, uv_position));
@@ -166,6 +170,8 @@ export async function starsGraphics() {
 
     const cursorUniform = gl.getUniformLocation(program, "cursor_position");
 
+    const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
+
     // Attribute location
     const positionAttribLoc = gl.getAttribLocation(program, "vertexPosition");
     if (positionAttribLoc < 0) {
@@ -189,7 +195,8 @@ export async function starsGraphics() {
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
     function drawFrame() {
-        const now = performance.now() * 0.001; // seconds
+        const now = Date.now() * 0.001; // seconds
+        
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);
 
@@ -213,6 +220,7 @@ export async function starsGraphics() {
         gl.uniform1f(timeUniform, now);
         gl.uniform1i(starCountUniform, nb_stars);
         gl.uniform2fv(starUniform, starPositionsCPUBuffer);
+        gl.uniform1fv(starLastLikeUniform, starLastLikeCPUBuffer);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);

@@ -2,10 +2,19 @@
 export const starIDs = [];        // starIDs[i] => star's integer ID
 export const starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
 export const starMessages = [];   // starMessages[i] => string or null
-export const starCreationTime = [];
+export const starLastLikeTime = [
+    1741327210,
+    1741234223,
+    1741174346,
+    1741238200,
+    1741177326,
+    1741143246
+];  // starCreationTime[i] => star's UNIX time of last like or creation.
+// TEMPORARY initialising the stars with fixed values, only 6 for now
 export let nb_stars = 0;
 
 export let starPositionsCPUBuffer = new Float32Array(starPositions);
+export let starLastLikeCPUBuffer = new Float32Array(starLastLikeTime);
 
 export let x_min = 5000;
 export let y_min = 5000;
@@ -22,6 +31,7 @@ export const RECONNECTION_TIMEOUT = 3000;
 export function updateStarPositionsBuffer() {
     nb_stars = starPositions.length / 2;
     starPositionsCPUBuffer = new Float32Array(starPositions);
+    starLastLikeCPUBuffer = new Float32Array(starLastLikeTime);
 }
 
 /**

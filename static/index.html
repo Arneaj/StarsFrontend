@@ -116,6 +116,14 @@
         #auth-button:hover {
             background: #555;
         }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+      #error-message-box {
+        animation: fadeOut 1s ease-out 3s forwards;
+      }
     </style>
 </head>
 <body>

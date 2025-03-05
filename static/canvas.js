@@ -29,6 +29,38 @@ import { StarStreamManager } from "./SSE.js";
 /***************************************************************************
  * WebGL Initialization and Rendering
  ***************************************************************************/
+// async function createStar(x, y, message) {
+//     // Example usage: createStar(0.25, -0.1, "Hello from canvas!");
+//     const body = { x, y, message };
+//     try {
+//         const resp = await fetch(`${BACKEND_URL}/stars`, {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify(body),
+//         });
+        
+//         if (!resp.ok) {
+//             console.error("Failed to create star:", resp.status, await resp.text());
+//             return;
+//         }
+
+//         // Parse the JSON response
+//         const responseData = await resp.json();
+
+//         // Check if the response contains a "status" field (from the filter service)
+//         if (responseData.status === false) {
+//             // If the filter says the message is bad
+//             alert(responseData.message);
+//             return;
+//         } else {
+//             const newStar = await resp.json();
+//             console.log("Created star:", newStar);
+//         }
+//     } catch (e) {
+//         console.error("Error creating star:", e);
+//     }
+// }
+
 function showError(errorText) {
     const errorBoxDiv = document.getElementById('error-box');
     if (!errorBoxDiv) {
@@ -39,6 +71,76 @@ function showError(errorText) {
     errorSpan.innerText = errorText;
     errorBoxDiv.appendChild(errorSpan);
     console.error(errorText);
+}
+
+// function showMessage(errorText) {
+//     // Create a new div for the error box
+//     const errorBox = document.createElement('div');
+//     errorBox.id = 'error-message-box';
+//     errorBox.innerText = errorText;
+
+//     // Style the error box
+//     errorBox.style.position = 'fixed';
+//     errorBox.style.top = '50%'; // Center vertically
+//     errorBox.style.left = '50%'; // Center horizontally
+//     errorBox.style.transform = 'translate(-50%, -50%)'; // Adjust for exact center
+//     errorBox.style.width = '50%'; // Set width
+//     errorBox.style.backgroundColor = '#ff0000'; // Red background
+//     errorBox.style.color = '#000000'; // Black text
+//     errorBox.style.padding = '20px'; // Add padding
+//     errorBox.style.borderRadius = '10px'; // Rounded corners
+//     errorBox.style.zIndex = '10000'; // Ensure it's on top
+//     errorBox.style.textAlign = 'center'; // Center text
+//     errorBox.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Add shadow
+//     errorBox.style.opacity = '1'; // Fully visible
+//     errorBox.style.transition = 'opacity 1s ease-out'; // Fade-out transition
+
+//     // Append the error box to the body
+//     document.body.appendChild(errorBox);
+
+//     // Set a timeout to fade out the error box
+//     setTimeout(() => {
+//         errorBox.style.opacity = '0';
+//         // Remove the error box from the DOM after the fade-out animation
+//         setTimeout(() => {
+//             document.body.removeChild(errorBox);
+//         }, 1000); // 1 second for the fade-out animation
+//     }, 3000); // 3 seconds before starting the fade-out
+// }
+
+// Function to create and display a banner that fades after 5 seconds
+function showBanner(message) {
+    // Create a div element for the banner
+    const banner = document.createElement('div');
+
+    // Style the banner
+    banner.style.position = 'fixed';
+    banner.style.top = '0';
+    banner.style.left = '0';
+    banner.style.width = '100%';
+    banner.style.backgroundColor = '#ff4444'; // Bright red background
+    banner.style.color = 'white'; // White text
+    banner.style.textAlign = 'center';
+    banner.style.padding = '15px';
+    banner.style.fontFamily = 'Arial, sans-serif';
+    banner.style.fontWeight = 'bold';
+    banner.style.zIndex = '1000';
+    banner.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
+    banner.style.transition = 'opacity 1s ease'; // Smooth fade-out effect
+
+    // Set the text content of the banner
+    banner.textContent = message;
+
+    // Append the banner to the body
+    document.body.appendChild(banner);
+
+    // Automatically fade out and remove the banner after 5 seconds
+    setTimeout(() => {
+        banner.style.opacity = '0'; // Start fading out
+        setTimeout(() => {
+            document.body.removeChild(banner); // Remove the banner after fading
+        }, 1000); // Wait for the fade-out transition to complete
+    }, 5000); // 5 seconds delay
 }
 
 export async function starsGraphics() {

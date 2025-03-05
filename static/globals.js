@@ -8,7 +8,9 @@ export const starLastLikeTime = [
     Date.now() * 0.001 - 1735689600 - 6*3600,  // some star added 6h ago
     Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 12h ago
     Date.now() * 0.001 - 1735689600 - 18*3600,  // some star added 18 ago
-    Date.now() * 0.001 - 1735689600 - 24*3600  // some star added 24h ago
+    Date.now() * 0.001 - 1735689600 - 24*3600,  // some star added 24h ago
+    Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 24h ago
+    Date.now() * 0.001 - 1735689600 - 12*3600  // some star added 24h ago
 ];  // starCreationTime[i] => star's UNIX time of last like or creation.
 // TEMPORARY initialising the stars with fixed values, only 6 for now
 export let nb_stars = 0;
@@ -18,6 +20,8 @@ export let starLastLikeCPUBuffer = new Float32Array(starLastLikeTime);
 
 export let x_min = 5000;
 export let y_min = 5000;
+
+export let zoom = 1.0;
 
 export const total_map_pixels = 10000;
 
@@ -54,3 +58,15 @@ export function updateMinCoords(newXMin, newYMin) {
 export function update_nb_stars(newNbStars) {
     nb_stars = newNbStars;
 }
+
+/** Setter function for zoom */
+export function update_zoom(new_zoom) {
+    zoom = new_zoom;
+}
+
+/*
+zoomed_x_min    = x_span + 2*x_min + x_min*zoom - (x_span + 2*x_min)*zoom
+                = x_min * (2 - zoom) + x_span * (1 - zoom)
+
+zoomed_x_span   = x_span * zoom;
+*/

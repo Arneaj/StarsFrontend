@@ -15,7 +15,9 @@ import {
     RECONNECTION_TIMEOUT,
     isInViewport,
     updateMinCoords,
-    update_nb_stars
+    update_nb_stars,
+    zoom,
+    update_zoom
   } from './globals.js';
 
 /***************************************************************************
@@ -581,17 +583,14 @@ export function clickFunction(event) {
 }
 
 
-var zoom = 1.0;
-
-
 /**
  * Called when using the wheel up and down to modify the zoom value
  */
 export function zoomAction(event) {
     let dir = Math.sign(event.deltaY);
     
-    if (dir < 0) zoom = Math.min(zoom*1.01, 5.0);
-    if (dir > 0) zoom = Math.max(zoom/1.01, 0.2);
+    if (dir < 0) update_zoom( Math.min(zoom*1.01, 5.0) );
+    if (dir > 0) update_zoom( Math.max(zoom/1.01, 0.2) );
 
     console.log(zoom);
 }

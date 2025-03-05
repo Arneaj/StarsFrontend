@@ -2,6 +2,7 @@
 export const starIDs = [];        // starIDs[i] => star's integer ID
 export const starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
 export const starMessages = [];   // starMessages[i] => string or null
+export const starCreationTime = [];
 export let nb_stars = 0;
 
 export let starPositionsCPUBuffer = new Float32Array(starPositions);

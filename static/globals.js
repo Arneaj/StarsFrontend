@@ -3,12 +3,12 @@ export const starIDs = [];        // starIDs[i] => star's integer ID
 export const starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
 export const starMessages = [];   // starMessages[i] => string or null
 export const starLastLikeTime = [
-    Date.now() * 0.001 - 10,  // 10s ago
-    Date.now() * 0.001 - 60,  // 1 min ago
-    Date.now() * 0.001 - 600,  // 10 min ago
-    Date.now() * 0.001 - 3600,  // 1h ago
-    Date.now() * 0.001 - 43200,  // 12h ago
-    Date.now() * 0.001 - 172800  // 2 days ago
+    Date.now() * 0.001 - 1735689600 - 10,  // some star added 10s ago
+    Date.now() * 0.001 - 1735689600 - 3600,  // some star added 1h ago
+    Date.now() * 0.001 - 1735689600 - 6*3600,  // some star added 6h ago
+    Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 12h ago
+    Date.now() * 0.001 - 1735689600 - 18*3600,  // some star added 18 ago
+    Date.now() * 0.001 - 1735689600 - 24*3600  // some star added 24h ago
 ];  // starCreationTime[i] => star's UNIX time of last like or creation.
 // TEMPORARY initialising the stars with fixed values, only 6 for now
 export let nb_stars = 0;
@@ -38,11 +38,11 @@ export function updateStarPositionsBuffer() {
  * Check if a star at (x, y) is currently in the viewport.
  */
 export function isInViewport(canvas, x, y) {
-  const left   = x_min;
-  const right  = x_min + (canvas?.clientWidth || 0);
-  const bottom = y_min;
-  const top    = y_min + (canvas?.clientHeight || 0);
-  return (x >= left && x <= right && y >= bottom && y <= top);
+    const left   = x_min;
+    const right  = x_min + (canvas?.clientWidth || 0);
+    const bottom = y_min;
+    const top    = y_min + (canvas?.clientHeight || 0);
+    return (x >= left && x <= right && y >= bottom && y <= top);
 }
 
 /** Setter function for x_min and y_min */

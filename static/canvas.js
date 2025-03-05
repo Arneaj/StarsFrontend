@@ -85,8 +85,8 @@ export async function starsGraphics() {
     uniform float y_max_minus_y_min;
 
     uniform int nb_stars;
-    uniform vec2 star_positions[300];
-    uniform float star_last_likes[300];
+    uniform vec2 star_positions[400];
+    uniform float star_last_likes[200];
 
     uniform float current_time;
     uniform vec2 cursor_position;
@@ -94,7 +94,8 @@ export async function starsGraphics() {
     in vec2 position;
     out vec4 outputColor;
 
-    void main() {
+    void main() 
+    {
         vec2 uv_cursor_position = cursor_position;
 
         // Convert from clip coords -> [0,1] -> map coordinates
@@ -110,13 +111,17 @@ export async function starsGraphics() {
         vec2 uv_star_position;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-        for (int i = 0; i < nb_stars; i++) {
+        for (int i = 0; i < nb_stars; i++) 
+        {
             uv_star_position = star_positions[i];
             d = distance(uv_position, uv_star_position);
+
             delta_time = current_time - star_last_likes[i];
+            delta_time = clamp(1.0-delta_time*0.00001157407, 0.0, 1.0);  // disappears over 24h
             
-            outputColor += (1.0 + 0.1 * sin(10.0 * current_time))
-                           * vec4(1.0, 0.9, 0.7, 1.0)
+            outputColor.xyz += (1.0 + 0.1 * sin(10.0 * current_time))
+                           * vec3(1.0, 0.9, 0.7)
+                           * delta_time
                            / pow(d * 0.0005, 1.8);
         }
 
@@ -167,6 +172,8 @@ export async function starsGraphics() {
 
     // Uniform locations
     const starUniform = gl.getUniformLocation(program, "star_positions");
+    const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
+
     const timeUniform = gl.getUniformLocation(program, "current_time");
     const starCountUniform = gl.getUniformLocation(program, "nb_stars");
 
@@ -176,8 +183,6 @@ export async function starsGraphics() {
     const yMaxMinusYMinUniform = gl.getUniformLocation(program, "y_max_minus_y_min");
 
     const cursorUniform = gl.getUniformLocation(program, "cursor_position");
-
-    const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
 
     // Attribute location
     const positionAttribLoc = gl.getAttribLocation(program, "vertexPosition");
@@ -199,12 +204,10 @@ export async function starsGraphics() {
         cursorY = e.clientY;
     });  
 
-    for (let i=0; i<nb_stars; i++) console.log(`now - star ${i}'s last like`, Date.now() * 0.001 - starLastLikeTime[i]);
-
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
     function drawFrame() {
-        const now = Date.now() * 0.001; // seconds   
+        let now = Date.now() * 0.001 - 1735689600; // seconds   
         
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);
@@ -227,7 +230,9 @@ export async function starsGraphics() {
         gl.uniform2f(cursorUniform, cursorX + x_min, cursorY + y_min);
 
         gl.uniform1f(timeUniform, now);
+
         gl.uniform1i(starCountUniform, nb_stars);
+
         gl.uniform2fv(starUniform, starPositionsCPUBuffer);
         gl.uniform1fv(starLastLikeUniform, starLastLikeCPUBuffer);
 

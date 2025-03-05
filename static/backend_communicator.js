@@ -9,9 +9,10 @@ export class BackendCommunicator {
   // -------------------------------
   // Star CRUD Operations
   // -------------------------------
-  
+
   static async createStar(x, y, message) {
     const token = localStorage.getItem('token');
+    const body = { x, y, message };
     try {
       const resp = await fetch(`${BACKEND_URL}/stars`, {
         method: "POST",
@@ -19,9 +20,26 @@ export class BackendCommunicator {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ x, y, message }),
+        body: JSON.stringify(body),
       });
-      return await this._handleResponse(resp);
+
+      if (!resp.ok) {
+        console.error("Failed to create star:", resp.status, await resp.text());
+        return null;
+      }
+
+      // Parse the JSON response
+      const responseData = await resp.json();
+
+      // Check if the response contains a "status" field (from the filter service)
+      if (responseData.status === false) {
+        // If the filter says the message is bad
+        alert(responseData.message);
+        return null;
+      } else {
+        console.log("Created star:", responseData);
+        return responseData;
+      }
     } catch (e) {
       console.error("Error creating star:", e);
       return null;
@@ -55,7 +73,7 @@ export class BackendCommunicator {
   // -------------------------------
   // Star Data Fetching
   // -------------------------------
-  
+
   static async fetchInitialStars() {
     try {
       const resp = await fetch(`${BACKEND_URL}/stars`);
@@ -79,7 +97,7 @@ export class BackendCommunicator {
   // -------------------------------
   // SSE Connection Management
   // -------------------------------
-  
+
   static createEventSource() {
     const token = localStorage.getItem('token');
     const url = new URL(`${BACKEND_URL}/stars/stream`);
@@ -90,7 +108,7 @@ export class BackendCommunicator {
   // -------------------------------
   // Helper Methods
   // -------------------------------
-  
+
   static async _handleResponse(response) {
     if (!response.ok) {
       const error = await response.text();

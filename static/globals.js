@@ -23,6 +23,11 @@ export let y_min = 5000;
 
 export let zoom = 1.0;
 
+export let zoomed_x_min = x_min;
+export let zoomed_y_min = y_min;
+export let zoomed_x_span = null;
+export let zoomed_y_span = null;
+
 export const total_map_pixels = 10000;
 
 export const MAX_STARS = 1000;
@@ -65,8 +70,10 @@ export function update_zoom(new_zoom) {
 }
 
 /*
-zoomed_x_min    = x_span + 2*x_min + x_min*zoom - (x_span + 2*x_min)*zoom
-                = x_min * (2 - zoom) + x_span * (1 - zoom)
+zoomed_x_min    = 0.5*x_span + x_min + x_min*zoom - (0.5*x_span + x_min)*zoom
+                = x_min + 0.5 * x_span * (1 - zoom)
 
 zoomed_x_span   = x_span * zoom;
+
+
 */

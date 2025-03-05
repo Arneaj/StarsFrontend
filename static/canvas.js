@@ -333,12 +333,16 @@ export async function starsGraphics() {
 
         let smooth_time = performance.now() * 0.001;
 
-        gl.uniform1f(xMinUniform, x_min);
-        gl.uniform1f(xMaxMinusXMinUniform, canvas.clientWidth);
-        gl.uniform1f(yMinUniform, y_min);
-        gl.uniform1f(yMaxMinusYMinUniform, canvas.clientHeight);
+        gl.uniform1f(xMinUniform, (x_min + 0.5 * canvas.clientWidth * (1 - zoom)));
+        gl.uniform1f(xMaxMinusXMinUniform, canvas.clientWidth*zoom);
+        gl.uniform1f(yMinUniform, (y_min + 0.5 * canvas.clientHeight * (1 - zoom)));
+        gl.uniform1f(yMaxMinusYMinUniform, canvas.clientHeight*zoom);
 
-        gl.uniform2f(cursorUniform, cursorX + x_min, cursorY + y_min);
+        gl.uniform2f(
+            cursorUniform, 
+            cursorX*zoom + (x_min + 0.5 * canvas.clientWidth * (1 - zoom)), 
+            cursorY*zoom + (y_min + 0.5 * canvas.clientHeight * (1 - zoom))
+        );
 
         gl.uniform1f(timeUniform, Date.now() * 0.001 - 1735689600.0);  // seconds since 01/01/2025
         gl.uniform1f(smoothTimeUniform, smooth_time);  // seconds since program started. Used for smooth animations.
@@ -401,6 +405,8 @@ var starPopupOpen = false;  // tracks if our "add star" or "star info" box is op
 export function getMessage(event) {
     if (starPopupOpen) return;
 
+    let canvas = document.getElementById('stars_canvas');
+
     const now = Date.now();
     if (now - last_check <= throttle_delay) return;
     last_check = now;
@@ -408,8 +414,8 @@ export function getMessage(event) {
     const infoElement = document.getElementById('info');
     if (!infoElement) return;
 
-    let x = event.clientX + x_min;
-    let y = event.clientY + y_min;
+    let x = event.clientX*zoom + (x_min + 0.5 * canvas.clientWidth * (1 - zoom));
+    let y = event.clientY*zoom + (y_min + 0.5 * canvas.clientHeight * (1 - zoom));
 
     let messageFound = null;
     let msgPosX = 0, msgPosY = 0;
@@ -419,8 +425,8 @@ export function getMessage(event) {
         if (dx*dx + dy*dy < 1000) {
             // Found a star
             messageFound = starMessages[i];
-            msgPosX = starPositions[2*i] - x_min;
-            msgPosY = starPositions[2*i+1] - y_min;
+            msgPosX = (starPositions[2*i] - (x_min + 0.5 * canvas.clientWidth * (1 - zoom)))/zoom;
+            msgPosY = (starPositions[2*i+1] - (y_min + 0.5 * canvas.clientHeight * (1 - zoom)))/zoom;
             break;
         }
     }
@@ -549,8 +555,10 @@ export function clickFunction(event) {
     const infoBox = document.getElementById('info');
     if (!infoBox) return;
 
-    let x = event.clientX + x_min;
-    let y = event.clientY + y_min;
+    let canvas = document.getElementById('stars_canvas');
+
+    let x = event.clientX*zoom + (x_min + 0.5 * canvas.clientWidth * (1 - zoom));
+    let y = event.clientY*zoom + (y_min + 0.5 * canvas.clientHeight * (1 - zoom));
 
     // The box might be visible, so forcibly hide first
     infoBox.style.animation = "0.2s smooth-disappear ease-out";

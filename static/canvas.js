@@ -436,6 +436,11 @@ export function getMessage(event) {
         infoElement.style.animation = "0.2s smooth-disappear ease-out";
         infoElement.style.opacity = "0";
         infoElement.style.width = "10%";
+        setTimeout(() => {
+            if (infoElement.style.opacity === "0") {
+                infoElement.style.visibility = "hidden";
+            }
+        }, 200);
         return;
     }
     // Show star info near the star
@@ -444,6 +449,7 @@ export function getMessage(event) {
     infoElement.style.top = (msgPosY) + "px";
     infoElement.style.left = (msgPosX + 20) + "px";
     infoElement.style.width = "10%";
+    infoElement.style.visibility = "visible";
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";
 }
@@ -615,6 +621,12 @@ export function closeStarPopup(event) {
 
     infoBox.style.animation = "0.2s smooth-disappear ease-out";
     infoBox.style.opacity = "0";
+    
+    setTimeout(() => {
+        if (infoElement.style.opacity === "0") {
+            infoElement.style.visibility = "hidden";
+        }
+    }, 200);
 
     starPopupOpen = false;
 }

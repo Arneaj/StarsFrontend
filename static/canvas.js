@@ -596,9 +596,9 @@ export function clickFunction(event) {
             <button id="close_star_box" class="button close_button">Close</button>
         `;
         const likeBtn = infoBox.querySelector("#like_button");
-        //likeBtn?.addEventListener("click", submitMessage);
+        likeBtn?.addEventListener("click", likeMessage);
         const dislikeBtn = infoBox.querySelector("#dislike_button");
-        //dislikeBtn?.addEventListener("click", submitMessage);
+        dislikeBtn?.addEventListener("click", dislikeMessage);
     }
     infoBox.style.visibility = "visible";
     infoBox.style.animation = "0.2s smooth-appear ease-in";
@@ -656,6 +656,26 @@ export async function submitMessage(event) {
     const message = msgInput ? msgInput.value : "";
     await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
     closeStarPopup(event);
+}
+
+/**
+ * Called when the user presses Like in the star box
+ */
+export async function likeMessage(event) {
+    const likeBtn = document.getElementById('like_button');
+
+    //await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
+    //closeStarPopup(event);
+}
+
+/**
+ * Called when the user presses Dislike in the star box
+ */
+export async function dislikeMessage(event) {
+    const dislikeBtn = document.getElementById('dislike_button');
+    
+    //await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
+    //closeStarPopup(event);
 }
 
 /***************************************************************************

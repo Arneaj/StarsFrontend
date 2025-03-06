@@ -474,10 +474,6 @@ var mouseDownDone = false;
 //     last_t = null;
 // });
 
-var last_x = null;
-var last_y = null;
-var last_t = null;
-
 export function mouseDown() {
     if (starPopupOpen) return;
     
@@ -519,6 +515,11 @@ export function mouseDownAndMove(event) {
     speed_y += 0.5 * Math.sign(dy) * Math.min(0.1, Math.abs(dy)); // Math.sign(dy/dt) * Math.min(0.1, Math.abs(dy/dt));
 }
 
+export function stopOnMouseLeave(event) {
+    mouseHoldTimeout = null;
+    mouseDownDone = false;
+}
+
 
 function updateSpeed() {
     // If no long press, slow down
@@ -527,8 +528,8 @@ function updateSpeed() {
         speed_y *= 0.9;
     }
 
-    const newXMin = Math.min(total_map_pixels, Math.max(0, x_min - 3*speed_x));
-    const newYMin = Math.min(total_map_pixels, Math.max(0, y_min - 3*speed_y));
+    const newXMin = Math.min(total_map_pixels, Math.max(0, x_min - 4*speed_x));
+    const newYMin = Math.min(total_map_pixels, Math.max(0, y_min - 4*speed_y));
 
     updateMinCoords(newXMin, newYMin);  // Update x_min and y_min safely
 

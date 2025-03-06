@@ -575,13 +575,32 @@ export function clickFunction(event) {
     last_clicked_x = x;
     last_clicked_y = y;
 
-    infoBox.innerHTML = `
-        <b>Add a star</b><br><br>
-        <input type="text" id="star_message" class="button message_input" placeholder="Star message...">
-        <br><br>
-        <button id="submit_button" class="button submit_button">Submit message</button>
-        <button id="close_star_box" class="button close_button">Close</button>
-    `;
+    if (infoBox.style.visibility === "hidden") 
+    {
+        infoBox.innerHTML = `
+            <b>Add a star</b><br><br>
+            <input type="text" id="star_message" class="button message_input" placeholder="Star message...">
+            <br><br>
+            <button id="submit_button" class="button submit_button">Submit message</button>
+            <button id="close_star_box" class="button close_button">Close</button>
+        `;
+        const submitBtn = infoBox.querySelector("#submit_button");
+        submitBtn?.addEventListener("click", submitMessage);
+    }
+    else 
+    {
+        infoBox.innerHTML += `
+            <br><br>
+            <button id="like_button" class="button like_button">Like</button>
+            <button id="dislike_button" class="button dislike_button">Dislike</button>
+            <button id="close_star_box" class="button close_button">Close</button>
+        `;
+        const likeBtn = infoBox.querySelector("#like_button");
+        //likeBtn?.addEventListener("click", submitMessage);
+        const dislikeBtn = infoBox.querySelector("#dislike_button");
+        //dislikeBtn?.addEventListener("click", submitMessage);
+    }
+    infoBox.style.visibility = "visible";
     infoBox.style.animation = "0.2s smooth-appear ease-in";
     infoBox.style.opacity = "1";
     infoBox.style.backgroundColor = "#1a0416d7";
@@ -589,11 +608,8 @@ export function clickFunction(event) {
     infoBox.style.left = "25%";
     infoBox.style.width = "50%";
 
-    // Attach listeners to these new buttons
-    const submitBtn = infoBox.querySelector("#submit_button");
+    // Attach listeners to the close buttons
     const closeBtn  = infoBox.querySelector("#close_star_box");
-
-    submitBtn?.addEventListener("click", submitMessage);
     closeBtn?.addEventListener("click", closeStarPopup);
 }
 
@@ -624,10 +640,10 @@ export function closeStarPopup(event) {
     infoBox.style.opacity = "0";
     
     setTimeout(() => {
-        if (infoElement.style.opacity === "0") {
-            infoElement.style.visibility = "hidden";
+        if (infoBox.style.opacity === "0") {
+            infoBox.style.visibility = "hidden";
         }
-    }, 200);
+    }, 220);
 
     starPopupOpen = false;
 }

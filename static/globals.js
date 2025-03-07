@@ -1,8 +1,9 @@
 // globals.js
-export const starIDs = [];        // starIDs[i] => star's integer ID
-export const starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
-export const starMessages = [];   // starMessages[i] => string or null
-export const starLastLikeTime = [
+
+export let starIDs = [];        // starIDs[i] => star's integer ID
+export let starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
+export let starMessages = [];   // starMessages[i] => string or null
+export let starLastLikeTime = [
     Date.now() * 0.001 - 1735689600 - 10,  // some star added 10s ago
     Date.now() * 0.001 - 1735689600 - 3600,  // some star added 1h ago
     Date.now() * 0.001 - 1735689600 - 6*3600,  // some star added 6h ago
@@ -77,18 +78,3 @@ zoomed_x_span   = x_span * zoom;
 
 
 */
-
-// Global flag for sound effects to be disabled/enabled
-export let soundEffectsEnabled = true;
-
-// Function to toggle sound effects
-export function toggleSoundEffects() {
-    soundEffectsEnabled = !soundEffectsEnabled;
-    const soundToggleBtn = document.getElementById('sound_toggle');
-    if (soundToggleBtn) {
-        soundToggleBtn.textContent = soundEffectsEnabled ? "Disable Sound Effects" : "Enable Sound Effects";
-    }
-    if (!soundEffectsEnabled) {
-        stopDrone();
-    }
-}

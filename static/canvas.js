@@ -8,6 +8,8 @@ import {
     removeOctaveNote
 } from './music.js';
 
+import { initializeAudio } from './audio_context.js';
+
 import {
     starIDs,
     starPositions,
@@ -24,10 +26,10 @@ import {
     updateMinCoords,
     update_nb_stars,
     zoom,
-    update_zoom,
-    toggleSoundEffects,
-    soundEffectsEnabled
-  } from './globals.js';
+    update_zoom
+} from './globals.js';
+
+import { soundEffectsEnabled } from './sound_state.js';
 
 /***************************************************************************
  * Imports
@@ -617,14 +619,10 @@ export function clickFunction(event) {
     infoBox.style.left = "25%";
     infoBox.style.width = "50%";
 
-    // Start the drone sound when the popup opens
-    startDrone();
-
     // Attach listeners to the close buttons
-    const closeBtn  = infoBox.querySelector("#close_star_box");
-    closeBtn?.addEventListener("click", () => {
-        closeStarPopup(event);
-        stopDrone(); // Stop the drone when the close button is clicked
+    const closeBtn = infoBox.querySelector("#close_star_box");
+    closeBtn?.addEventListener("click", async () => {
+        await closeStarPopup(event);
     });
 }
 
@@ -636,10 +634,7 @@ export function zoomAction(event) {
     let dir = Math.sign(event.deltaY);
     
     if (dir < 0) update_zoom( Math.min(zoom*1.01, 5.0) );
-    addOctaveNote();
-
     if (dir > 0) update_zoom( Math.max(zoom/1.01, 0.2) );
-    removeOctaveNote();
 
     console.log(zoom);
 }
@@ -648,7 +643,7 @@ export function zoomAction(event) {
 /**
  * Closes the star info/add popup (the #info element).
  */
-export function closeStarPopup(event) {
+export async function closeStarPopup(event) {
     event.stopPropagation();
 
     const infoBox = document.getElementById('info');
@@ -663,9 +658,6 @@ export function closeStarPopup(event) {
         }
     }, 220);
 
-    // Stop the drone sound when the popup closes
-    stopDrone();
-
     starPopupOpen = false;
 }
 
@@ -676,10 +668,8 @@ export async function submitMessage(event) {
     const msgInput = document.getElementById('star_message');
     const message = msgInput ? msgInput.value : "";
     await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
-    closeStarPopup(event);
-
-    // Stop the drone sound when the user submits a message
-    stopDrone();
+    
+    await closeStarPopup(event);
 }
 
 /**
@@ -687,9 +677,15 @@ export async function submitMessage(event) {
  */
 export async function likeMessage(event) {
     const likeBtn = document.getElementById('like_button');
-
-    //await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
-    //closeStarPopup(event);
+    
+    // Play the octave note if sound effects are enabled
+    if (soundEffectsEnabled) {
+        addOctaveNote();
+        // Remove the note after 2 seconds
+        setTimeout(() => {
+            removeOctaveNote();
+        }, 2000);
+    }
 }
 
 /**
@@ -697,9 +693,6 @@ export async function likeMessage(event) {
  */
 export async function dislikeMessage(event) {
     const dislikeBtn = document.getElementById('dislike_button');
-    
-    //await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
-    //closeStarPopup(event);
 }
 
 /***************************************************************************
@@ -748,4 +741,17 @@ export async function removeAllStars() {
     starPositions.length = 0;
     starMessages.length = 0;
     updateStarPositionsBuffer();
+}
+
+export function toggleSoundEffects() {
+    soundEffectsEnabled = !soundEffectsEnabled;
+    const soundToggleBtn = document.getElementById('sound_toggle');
+    if (soundToggleBtn) {
+        soundToggleBtn.textContent = soundEffectsEnabled ? "Disable Sound Effects" : "Enable Sound Effects";
+    }
+    
+    // Always stop the drone when toggling, regardless of new state
+    stopDrone().then(() => {
+        console.log("Sound effects toggled:", soundEffectsEnabled);
+    });
 }

@@ -620,7 +620,10 @@ export function clickFunction(event) {
 
     // Attach listeners to the close buttons
     const closeBtn  = infoBox.querySelector("#close_star_box");
-    closeBtn?.addEventListener("click", closeStarPopup);
+    closeBtn?.addEventListener("click", () => {
+        closeStarPopup(event);
+        stopDrone(); // Stop the drone when the close button is clicked
+    });
 }
 
 
@@ -658,10 +661,10 @@ export function closeStarPopup(event) {
         }
     }, 220);
 
-    starPopupOpen = false;
-
     // Stop the drone sound when the popup closes
     stopDrone();
+
+    starPopupOpen = false;
 }
 
 /**

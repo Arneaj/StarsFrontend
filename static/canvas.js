@@ -272,7 +272,7 @@ export async function starsGraphics() {
 
             float dist_n = dot(ray_normal, uv_position - star_positions[last_star_index]);
 
-            if (abs(dist_n) > 0.5) 
+            if (abs(dist_n) > 5.0) 
             {
                 last_star_index = i;
                 continue;
@@ -286,7 +286,13 @@ export async function starsGraphics() {
                 continue;
             }
 
-            outputColor.xyz = 1.0 - outputColor.xyz;
+            float n_offset = abs(dist_n)*0.2;
+            float u_offset = min(dist_u, ray_length - dist_u) / ray_length;
+
+            outputColor.xyz += (1.0 + 0.1 * sin(mod(10.0 * smooth_current_time, 6.28318530718)))
+                           * vec3(1.0, 0.9, 1.0)
+                           * pow((1.0 - n_offset - u_offset), 3.0)
+                           / max(0.5, pow(d_cursor_star_min*0.1, 1.8));
 
             last_star_index = i;
         }

@@ -24,7 +24,9 @@ import {
     updateMinCoords,
     update_nb_stars,
     zoom,
-    update_zoom
+    update_zoom,
+    toggleSoundEffects,
+    soundEffectsEnabled
   } from './globals.js';
 
 /***************************************************************************

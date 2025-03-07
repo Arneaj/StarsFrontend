@@ -16,6 +16,7 @@ function fadeOutAndStop(oscObj, duration = 1) {
 }
 
 export function startDrone() {
+    if (!soundEffectsEnabled) return;
     if (oscillators.length > 0) return;
     for (let i = 0; i < 4; i++) addRandomNote();
     addInterval = setInterval(addRandomNote, 4000);
@@ -31,6 +32,7 @@ export function stopDrone() {
 }
 
 export function addOctaveNote() {
+    if (!soundEffectsEnabled) return;
     // Debug logs
     console.log("addOctaveNote called");
     if (octaveOscillators.length > 0) {
@@ -72,6 +74,7 @@ export function removeOctaveNote() {
 }
 
 export function addRandomNote() {
+    if (!soundEffectsEnabled) return;
     if (oscillators.length >= baseFrequencies.length) return;
     let freq = baseFrequencies[Math.floor(Math.random() * baseFrequencies.length)];
     let osc = audioContext.createOscillator();

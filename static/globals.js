@@ -77,3 +77,18 @@ zoomed_x_span   = x_span * zoom;
 
 
 */
+
+// Global flag for sound effects to be disabled/enabled
+export let soundEffectsEnabled = true;
+
+// Function to toggle sound effects
+export function toggleSoundEffects() {
+    soundEffectsEnabled = !soundEffectsEnabled;
+    const soundToggleBtn = document.getElementById('sound_toggle');
+    if (soundToggleBtn) {
+        soundToggleBtn.textContent = soundEffectsEnabled ? "Disable Sound Effects" : "Enable Sound Effects";
+    }
+    if (!soundEffectsEnabled) {
+        stopDrone();
+    }
+}

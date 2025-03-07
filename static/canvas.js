@@ -2,6 +2,13 @@
  * Global variables
  ***************************************************************************/
 import {
+    startDrone,
+    stopDrone,
+    addOctaveNote,
+    removeOctaveNote
+} from './music.js';
+
+import {
     starIDs,
     starPositions,
     starMessages,
@@ -608,6 +615,9 @@ export function clickFunction(event) {
     infoBox.style.left = "25%";
     infoBox.style.width = "50%";
 
+    // Start the drone sound when the popup opens
+    startDrone();
+
     // Attach listeners to the close buttons
     const closeBtn  = infoBox.querySelector("#close_star_box");
     closeBtn?.addEventListener("click", closeStarPopup);
@@ -621,7 +631,10 @@ export function zoomAction(event) {
     let dir = Math.sign(event.deltaY);
     
     if (dir < 0) update_zoom( Math.min(zoom*1.01, 5.0) );
+    addOctaveNote();
+
     if (dir > 0) update_zoom( Math.max(zoom/1.01, 0.2) );
+    removeOctaveNote();
 
     console.log(zoom);
 }
@@ -646,6 +659,9 @@ export function closeStarPopup(event) {
     }, 220);
 
     starPopupOpen = false;
+
+    // Stop the drone sound when the popup closes
+    stopDrone();
 }
 
 /**
@@ -656,6 +672,9 @@ export async function submitMessage(event) {
     const message = msgInput ? msgInput.value : "";
     await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
     closeStarPopup(event);
+
+    // Stop the drone sound when the user submits a message
+    stopDrone();
 }
 
 /**

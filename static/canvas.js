@@ -330,10 +330,12 @@ export async function starsGraphics() {
         gl.uniform1f(smoothTimeUniform, smooth_time);  // seconds since program started. Used for smooth animations.
 
         gl.uniform1i(starCountUniform, nb_stars);
-
-        gl.uniform2fv(starUniform, starPositionsCPUBuffer);
-        gl.uniform1fv(starLastLikeUniform, starLastLikeCPUBuffer);
-        gl.uniform1iv(starUserIDUniform, starUserIDCPUBuffer);
+        
+        if (nb_stars > 0) {
+            gl.uniform2fv(starUniform, starPositionsCPUBuffer);
+            gl.uniform1fv(starLastLikeUniform, starLastLikeCPUBuffer);
+            gl.uniform1iv(starUserIDUniform, starUserIDCPUBuffer);
+        }
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);

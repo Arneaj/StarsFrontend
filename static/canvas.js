@@ -252,14 +252,6 @@ export async function starsGraphics() {
 
     update_nb_stars(starPositions.length / 2);
 
-    console.log(starPositions);
-    console.log(starLastLikeTime);
-    console.log(starUserID);
-    console.log(starMessages);
-    
-    
-    
-
     // Uniform locations
     const starUniform = gl.getUniformLocation(program, "star_positions");
     const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
@@ -670,6 +662,41 @@ export async function dislikeMessage(event) {
     const dislikeBtn = document.getElementById('dislike_button');
 }
 
+
+function indexSort(refData) {
+    // Create an array of indices [0, 1, 2, ...N].
+    var indices = Object.keys(refData);
+  
+    // Sort array of indices according to the reference data.
+    indices.sort(function(indexA, indexB) {
+      if (refData[indexA] < refData[indexB]) {
+        return -1;
+      } else if (refData[indexA] > refData[indexB]) {
+        return 1;
+      }
+      return 0;
+    });
+  
+    // Map array of indices to corresponding values of the target array.
+    return indices;
+}
+
+
+function sortByCreationDate( list_of_lists_to_sort, star_creation_date)
+{
+    indices = indexSort(star_creation_date);
+
+    for (let i=0; i<list_of_lists_to_sort.length; i++)
+    {
+        list_of_lists_to_sort[i] = indices.map(function(index) {
+            return list_of_lists_to_sort[i][index];
+        });
+    }
+
+    return list_of_lists_to_sort;
+}
+
+
 /***************************************************************************
  * Fetch initial stars on page load
  ***************************************************************************/
@@ -677,25 +704,32 @@ export async function fetchInitialStars() {
     // This returns the full star data, including messages
     const stars = await BackendCommunicator.fetchInitialStars();
     if (stars) {
-      starIDs.length       = 0;
-      starPositions.length = 0;
-      starMessages.length  = 0;
-      starLastLikeTime.length = 0;
-      starCreationDate.length = 0;
-      starUserID.length = 0;
+        starIDs.length       = 0;
+        starPositions.length = 0;
+        starMessages.length  = 0;
+        starLastLikeTime.length = 0;
+        starCreationDate.length = 0;
+        starUserID.length = 0;
 
-      for (const s of stars) {
-        starIDs.push(s.id);
-        starPositions.push(s.x, s.y);
-        starMessages.push(s.message);
-        starLastLikeTime.push(s.last_liked);
-        starCreationDate.push(s.creation_date);
-        starUserID.push(s.user_id);
-      }
-      updateStarPositionsBuffer();
-      console.log("Loaded", nb_stars, "stars initially");
+        for (const s of stars) {
+            starIDs.push(s.id);
+            starPositions.push(s.x, s.y);
+            starMessages.push(s.message);
+            starLastLikeTime.push(s.last_liked);
+            starCreationDate.push(s.creation_date);
+            starUserID.push(s.user_id);
+        }
+
+        [starIDs, starPositions, starMessages, starLastLikeTime, starUserID] = sortByCreationDate(
+            [starIDs, starPositions, starMessages, starLastLikeTime, starUserID], 
+            starCreationDate
+        )
+
+        updateStarPositionsBuffer();
+        console.log("Loaded", nb_stars, "stars initially");
     }
 }
+
 /***************************************************************************
  * Debug buttons
  ***************************************************************************/

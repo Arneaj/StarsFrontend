@@ -19,6 +19,7 @@ export let starUserID = [];
 // export const starUserID = [0, 1, 0, 1, 1, 2, 0, 1];
 export let nb_stars = 0;
 export let starCreationDate = [];
+export let starUsername = [];
 
 export let starPositionsCPUBuffer = new Float32Array(starPositions);
 export let starLastLikeCPUBuffer = new Float32Array(starLastLikeTime);
@@ -42,7 +43,7 @@ export const RECONNECTION_TIMEOUT = 3000;
 
 export function updateLists(list_of_lists)
 {
-    [starIDs, starMessages, starLastLikeTime, starUserID, starPositions] = list_of_lists;
+    [starIDs, starMessages, starLastLikeTime, starUserID, starUsername, starPositions] = list_of_lists;
 }
 
 /**

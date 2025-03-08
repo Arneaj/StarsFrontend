@@ -19,6 +19,7 @@ import {
     starLastLikeTime,
     starCreationDate,
     starUserID,
+    starUsername,
     updateLists,
     nb_stars,
     starPositionsCPUBuffer,
@@ -721,6 +722,7 @@ export async function fetchInitialStars() {
         starLastLikeTime.length = 0;
         starCreationDate.length = 0;
         starUserID.length = 0;
+        starUsername.length = 0;
 
         for (const s of stars) {
             starIDs.push(s.id);
@@ -729,11 +731,12 @@ export async function fetchInitialStars() {
             starLastLikeTime.push(s.last_liked);
             starCreationDate.push(s.creation_date);
             starUserID.push(s.user_id);
+            starUsername.push(s.username);
         }
 
         updateLists(
             sortByCreationDate(
-                [starIDs, starMessages, starLastLikeTime, starUserID], 
+                [starIDs, starMessages, starLastLikeTime, starUserID, starUsername], 
                 starPositions,
                 starCreationDate
             )

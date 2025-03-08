@@ -9,6 +9,7 @@ import {
   starLastLikeTime,
   starCreationDate,
   starUserID,
+  starUsername,
   updateStarPositionsBuffer,
   isInViewport,
   RECONNECTION_TIMEOUT
@@ -72,6 +73,7 @@ export class StarStreamManager {
     starLastLikeTime.push(starData.last_liked);
     starCreationDate.push(starData.creation_date);
     starUserID.push(starData.user_id);
+    starUsername.push(null);
     updateStarPositionsBuffer();
 
     // Return the index in starIDs/starPositions/starMessages
@@ -116,6 +118,7 @@ export class StarStreamManager {
       starLastLikeTime.push(s.last_liked);
       starCreationDate.push(s.creation_date);
       starUserID.push(s.user_id);
+      starUsername.push(s.username);
     }
     updateStarPositionsBuffer();
   }

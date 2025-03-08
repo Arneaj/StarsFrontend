@@ -2,19 +2,25 @@
 
 const AUTH_URL = "http://127.0.0.1:5001";
 
-// Show/hide modal functions
-function showModal(modalId) {
+// Make modal functions available globally
+window.showModal = function(modalId) {
+    // First hide all modals without triggering login
     document.querySelectorAll('.modal').forEach(modal => {
         modal.style.display = 'none';
     });
-    document.getElementById(modalId).style.display = 'block';
-}
+    // Then show the requested modal
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+    }
+};
 
-function hideModals() {
+// This function is used by the close buttons
+window.hideModals = function() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.style.display = 'none';
     });
-}
+};
 
 // Track if listeners have been attached
 let formListenersAttached = false;

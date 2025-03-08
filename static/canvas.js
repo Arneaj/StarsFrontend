@@ -121,39 +121,39 @@ function showError(errorText) {
 // }
 
 // Function to create and display a banner that fades after 5 seconds
-function showBanner(message) {
-    // Create a div element for the banner
-    const banner = document.createElement('div');
+// function showBanner(message) {
+//     // Create a div element for the banner
+//     const banner = document.createElement('div');
 
-    // Style the banner
-    banner.style.position = 'fixed';
-    banner.style.top = '0';
-    banner.style.left = '0';
-    banner.style.width = '100%';
-    banner.style.backgroundColor = '#ff4444'; // Bright red background
-    banner.style.color = 'white'; // White text
-    banner.style.textAlign = 'center';
-    banner.style.padding = '15px';
-    banner.style.fontFamily = 'Arial, sans-serif';
-    banner.style.fontWeight = 'bold';
-    banner.style.zIndex = '1000';
-    banner.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
-    banner.style.transition = 'opacity 1s ease'; // Smooth fade-out effect
+//     // Style the banner
+//     banner.style.position = 'fixed';
+//     banner.style.top = '0';
+//     banner.style.left = '0';
+//     banner.style.width = '100%';
+//     banner.style.backgroundColor = '#ff4444'; // Bright red background
+//     banner.style.color = 'white'; // White text
+//     banner.style.textAlign = 'center';
+//     banner.style.padding = '15px';
+//     banner.style.fontFamily = 'Arial, sans-serif';
+//     banner.style.fontWeight = 'bold';
+//     banner.style.zIndex = '1000';
+//     banner.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
+//     banner.style.transition = 'opacity 1s ease'; // Smooth fade-out effect
 
-    // Set the text content of the banner
-    banner.textContent = message;
+//     // Set the text content of the banner
+//     banner.textContent = message;
 
-    // Append the banner to the body
-    document.body.appendChild(banner);
+//     // Append the banner to the body
+//     document.body.appendChild(banner);
 
-    // Automatically fade out and remove the banner after 5 seconds
-    setTimeout(() => {
-        banner.style.opacity = '0'; // Start fading out
-        setTimeout(() => {
-            document.body.removeChild(banner); // Remove the banner after fading
-        }, 1000); // Wait for the fade-out transition to complete
-    }, 5000); // 5 seconds delay
-}
+//     // Automatically fade out and remove the banner after 5 seconds
+//     setTimeout(() => {
+//         banner.style.opacity = '0'; // Start fading out
+//         setTimeout(() => {
+//             document.body.removeChild(banner); // Remove the banner after fading
+//         }, 1000); // Wait for the fade-out transition to complete
+//     }, 5000); // 5 seconds delay
+// }
 
 export async function starsGraphics() {
     const canvas = document.getElementById('stars_canvas');
@@ -590,7 +590,8 @@ export function clickFunction(event) {
     {
         infoBox.innerHTML = `
             <b>Add a star</b><br><br>
-            <input type="text" id="star_message" class="button message_input" placeholder="Star message...">
+            <input type="text" id="star_message" class="button message_input" placeholder="Star message..."><br>
+            <b>(max 256 characters)</b>
             <br><br>
             <button id="submit_button" class="button submit_button">Submit message</button>
             <button id="close_star_box" class="button close_button">Close</button>

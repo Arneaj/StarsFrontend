@@ -3,12 +3,29 @@
 <head>
     <meta charset="UTF-8" />
     <title>Starboard</title>
+    <!-- Add Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add Tailwind config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'space': ['"Space Grotesk"', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
         html, body {
             margin: 0; padding: 0;
             width: 100%; height: 100%;
             background: #2a2a2a;
             overflow: hidden;
+            font-family: 'Space Grotesk', sans-serif;
         }
         #sound_toggle {
           background-color: #444;
@@ -40,8 +57,8 @@
             opacity: 0;
             padding: 1%;
             border-radius: 10px;
-            color: #cfbfced5;
-            background-color: #1a04167b;
+            color: #ffffff;
+            background-color: rgba(26, 26, 26, 0.8);
         }
         @keyframes smooth-appear {
             from { opacity: 0; } to { opacity: 1; }
@@ -49,19 +66,22 @@
         @keyframes smooth-disappear {
             from { opacity: 1; } to { opacity: 0; }
         }
-        .button {
-            background-color: #060005;
-            color: #cfbfced5;
+        .button, #sound_toggle, #auth-button, .modal button, #enter-site, .message_input {
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
             border-radius: 5px;
-            border: 0px solid #cfbfce71;
-            padding: 1%;
+            padding: 10px 20px;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .button:hover {
-            background: #1a1023;
+        .button:hover, #sound_toggle:hover, #auth-button:hover, .modal button:hover, #enter-site:hover {
+            background-color: #444444;
         }
         .message_input {
             width: 80%;
+            background-color: #262626;  /* Slightly darker background for input */
+            border: 1px solid #444;     /* Subtle border */
         }
         /* Controls panel */
         #controls {
@@ -69,7 +89,7 @@
             top: 10px;
             left: 10px;
             z-index: 9999;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(26, 26, 26, 0.8);
             padding: 10px;
             color: #fff;
         }
@@ -86,11 +106,11 @@
             top: 50%;
             transform: translate(-50%, -50%);
             width: 300px;
-            background: #333;
+            background: #262626;
             color: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
         }
         .modal-content {
             display: flex;
@@ -101,6 +121,12 @@
             padding: 10px;
             border: none;
             border-radius: 5px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #444;
+        }
+        .modal input::placeholder {
+            color: #888;
         }
         .modal button {
             padding: 10px;
@@ -118,57 +144,41 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #444;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            z-index: 9999;
         }
-        #auth-button:hover {
-            background: #555;
+        @keyframes fadeOut {
+            from { opacity: 1;  }
+            to { opacity: 0; }
         }
-      @keyframes fadeOut {
-        from { opacity: 1;  }
-        to { opacity: 0; }
-      }
 
-      #error-message-box {
-        animation: fadeOut 1s ease-out 3s forwards;
-      }
+        #error-message-box {
+            animation: fadeOut 1s ease-out 3s forwards;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Add this right after the body tag -->
+    <!-- Update welcome screen -->
     <div id="welcome-screen" style="
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: #1a0416f5;
+        background-color: rgba(26, 26, 26, 0.96);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        cursor: pointer;
     ">
-        <h1 style="color: white; font-size: 2.5em; margin-bottom: 20px;">Welcome to Starboard</h1>
-        <button id="enter-site" style="
-            padding: 15px 30px;
-            font-size: 1.2em;
-            background-color: #4a1042;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        ">Enter Site</button>
+        <h1 class="text-white text-4xl font-space mb-6">Welcome</h1>
+        <p class="text-gray-400 font-space">Click anywhere to enter</p>
     </div>
 
-    <!-- Controls Panel -->
-    <div id="controls">
+    <!-- Update controls buttons -->
+    <div id="controls" class="font-space">
         <button id="add_random_star" class="button">Add Random Star</button>
         <button id="remove_star" class="button">Remove Star By ID</button>
         <button id="remove_all_stars" class="button">Remove All Stars</button>
@@ -184,11 +194,11 @@
         <span class="error-box-title">Error messages, if any, go here.</span>
     </div>
 
-    <!-- Authentication Button -->
-    <button id="auth-button">Login/Register to Add Stars</button>
+    <!-- Update auth button -->
+    <button id="auth-button" class="font-space">Login/Register to Add Stars</button>
 
-    <!-- Authentication Modals -->
-    <div id="auth-modals">
+    <!-- Update modals -->
+    <div id="auth-modals" class="font-space">
         <!-- Login Modal -->
         <div id="login-modal" class="modal">
             <div class="modal-content">
@@ -198,8 +208,8 @@
                     <input type="password" id="login-password" placeholder="Password" required>
                     <button type="submit">Login</button>
                 </form>
-                <button id="open_register">Create Account</button>
-                <button class="close-modal">Close</button>
+                <button onclick="showModal('register-modal')">Create Account</button>
+                <button onclick="hideModals()">Close</button>
             </div>
         </div>
 
@@ -212,8 +222,8 @@
                     <input type="password" id="register-password" placeholder="Password" required>
                     <button type="submit">Register</button>
                 </form>
-                <button id="open_login">Already have an account?</button>
-                <button class="close-modal">Close</button>
+                <button onclick="hideModals(); setTimeout(() => showModal('login-modal'), 1)">Already have an account?</button>
+                <button onclick="hideModals()">Close</button>
             </div>
         </div>
     </div>
@@ -232,9 +242,8 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const welcomeScreen = document.getElementById('welcome-screen');
-            const enterButton = document.getElementById('enter-site');
             
-            enterButton.addEventListener('click', () => {
+            welcomeScreen.addEventListener('click', () => {
                 // Initialize audio when user clicks
                 initializeAndStartAudio();
                 

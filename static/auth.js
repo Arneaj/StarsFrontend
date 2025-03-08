@@ -2,19 +2,25 @@
 
 const AUTH_URL = "http://127.0.0.1:5001";
 
-// Show/hide modal functions
-function showModal(modalId) {
+// Make modal functions available globally
+window.showModal = function(modalId) {
+    // First hide all modals without triggering login
     document.querySelectorAll('.modal').forEach(modal => {
         modal.style.display = 'none';
     });
-    document.getElementById(modalId).style.display = 'block';
-}
+    // Then show the requested modal
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+    }
+};
 
-function hideModals() {
+// This function is used by the close buttons
+window.hideModals = function() {
     document.querySelectorAll('.modal').forEach(modal => {
         modal.style.display = 'none';
     });
-}
+};
 
 // Track if listeners have been attached
 let formListenersAttached = false;
@@ -48,12 +54,13 @@ function attachFormListeners() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("DEBUG", data);
                     localStorage.setItem("token", data.access_token);
                     localStorage.setItem("userId", data.user_id);
-                    console.log("DEBUG WAHOO", data.access_token, data.user_id);
                     alert("Login successful!");
-                    hideModals();
+                    // Make sure all modals are hidden
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
                 } else {
                     const errorText = await response.text();
                     alert(`Login failed! Error: ${errorText}`);
@@ -84,7 +91,10 @@ function attachFormListeners() {
 
                 if (response.ok) {
                     alert("Registration successful! You can now log in.");
-                    showModal('login-modal');
+                    // Just close all modals
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
                 } else {
                     const errorData = await response.json();
                     alert(`Registration failed: ${errorData.detail || "Unknown error"}`);

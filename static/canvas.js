@@ -428,7 +428,7 @@ export function getMessage(event) {
     }
     // Show star info near the star
     infoElement.innerHTML = `<b>User</b><br><br>${messageFound}`;
-    infoElement.style.backgroundColor = "#1a04167b";
+    infoElement.style.backgroundColor = "rgba(51, 51, 51, 0.95)";
     infoElement.style.top = (msgPosY) + "px";
     infoElement.style.left = (msgPosX + 20) + "px";
     infoElement.style.width = "10%";
@@ -587,7 +587,7 @@ export function clickFunction(event) {
     infoBox.style.visibility = "visible";
     infoBox.style.animation = "0.2s smooth-appear ease-in";
     infoBox.style.opacity = "1";
-    infoBox.style.backgroundColor = "#1a0416d7";
+    infoBox.style.backgroundColor = "rgba(51, 51, 51, 0.95)";
     infoBox.style.top = "40%";
     infoBox.style.left = "25%";
     infoBox.style.width = "50%";

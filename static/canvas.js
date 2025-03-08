@@ -299,7 +299,9 @@ export async function starsGraphics() {
 
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
-    function drawFrame() {        
+    function drawFrame() {  
+        if (nb_stars == 0) requestAnimationFrame(drawFrame);
+        
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttribLoc);
 

@@ -2,7 +2,7 @@
  * Backend Communicator - Handles all backend communication logic
  ***************************************************************************/
 
-const BACKEND_URL = "http://127.0.0.1:7999";
+const APPLICATION_URL = "http://127.0.0.1:7999";
 const RECONNECTION_TIMEOUT = 3000;
 
 export class BackendCommunicator {
@@ -14,7 +14,7 @@ export class BackendCommunicator {
     const token = localStorage.getItem('token');
     const body = { x, y, message };
     try {
-      const resp = await fetch(`${BACKEND_URL}/stars`, {
+      const resp = await fetch(`${APPLICATION_URL}/stars`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export class BackendCommunicator {
 
   static async removeStarByID(starId) {
     try {
-      const resp = await fetch(`${BACKEND_URL}/stars/${starId}`, {
+      const resp = await fetch(`${APPLICATION_URL}/stars/${starId}`, {
         method: "DELETE"
       });
       return await this._handleResponse(resp);
@@ -60,7 +60,7 @@ export class BackendCommunicator {
 
   static async removeAllStars() {
     try {
-      const resp = await fetch(`${BACKEND_URL}/stars`, {
+      const resp = await fetch(`${APPLICATION_URL}/stars`, {
         method: "DELETE"
       });
       return await this._handleResponse(resp);
@@ -76,7 +76,7 @@ export class BackendCommunicator {
 
   static async fetchInitialStars() {
     try {
-      const resp = await fetch(`${BACKEND_URL}/stars`);
+      const resp = await fetch(`${APPLICATION_URL}/stars`);
       return await this._handleResponse(resp);
     } catch (err) {
       console.error("Error fetching stars:", err);
@@ -86,7 +86,7 @@ export class BackendCommunicator {
 
   static async fetchStarDetails(starId) {
     try {
-      const response = await fetch(`${BACKEND_URL}/stars/${starId}`);
+      const response = await fetch(`${APPLICATION_URL}/stars/${starId}`);
       return await this._handleResponse(response);
     } catch (error) {
       console.error("Error fetching star details:", error);
@@ -100,7 +100,7 @@ export class BackendCommunicator {
 
   static createEventSource() {
     const token = localStorage.getItem('token');
-    const url = new URL(`${BACKEND_URL}/stars/stream`);
+    const url = new URL(`${APPLICATION_URL}/stars/stream`);
     url.searchParams.append('token', token);
     return new EventSource(url.href);
   }

@@ -24,16 +24,14 @@ export class StarStreamManager {
 
     // All SSE events come in here as onmessage (the server does not use named events).
     this.eventSource.onmessage = async (event) => {
-      console.log("Raw SSE data:", event.data);  // 🔍 Debugging output
+      console.log("Raw SSE data:", event.data);
       
       try {
-        const fixedJsonString = event.data.replace(/'/g, '"');  
-        const parsed = JSON.parse(fixedJsonString);
-        if (parsed.event === 'add') {
-          this._handleAddEvent(parsed.star);
-        }
-        else if (parsed.event === 'remove') {
-          this._handleStarRemoval(parsed.star?.id);
+        const parsed = JSON.parse(event.data);  // Remove the replace step
+        if (parsed.type === 'create') {        // Check parsed.type
+          this._handleAddEvent(parsed.data);    // Use parsed.data
+        } else if (parsed.type === 'delete') {
+          this._handleStarRemoval(parsed.data?.id);
         }
       } catch (error) {
         console.error("Failed to parse SSE message:", error, "Received:", event.data);
@@ -48,18 +46,17 @@ export class StarStreamManager {
   }
 
   _handleAddEvent(starData) {
-    // starData: { id, x, y }, no message
     if (!starData || typeof starData.x !== 'number' || typeof starData.y !== 'number' || !starData.id) {
-      console.warn("Malformed star SSE event:", starData);
-      return;
+        console.warn("Malformed star SSE event:", starData);
+        return;
     }
 
-    // 1) Always store the star in arrays, with message = null
+    // Add the star with the backend-generated ID
     const i = this._addStarMinimal(starData.id, starData.x, starData.y);
 
-    // 2) If it's in viewport, fetch message
+    // Fetch the message if the star is in the viewport
     if (isInViewport(this.canvas, starData.x, starData.y)) {
-      this._fetchStarMessage(i, starData.id);
+        this._fetchStarMessage(i, starData.id);
     }
   }
 

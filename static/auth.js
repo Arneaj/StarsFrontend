@@ -40,6 +40,8 @@ function attachFormListeners() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
 
+            localStorage.setItem("username", email);
+
             if (!email || !password) {
                 alert("Email and password are required!");
                 return;

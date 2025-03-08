@@ -13,7 +13,8 @@ export class BackendCommunicator {
   static async createStar(x, y, message) {
     const token = localStorage.getItem('token');
     const user_id = localStorage.getItem('userId');
-    const body = {x, y, message, user_id};
+    const username = localStorage.getItem('username');
+    const body = {x, y, message, user_id, username};
     try {
       const resp = await fetch(`${APPLICATION_URL}/stars`, {
         method: "POST",

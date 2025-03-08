@@ -688,7 +688,7 @@ function sortByCreationDate( list_of_lists_to_sort, list_of_pos, star_creation_d
     let indices = indexSort(star_creation_date);
 
     let double_indices = indices.map(function(index) {
-        return [index, index];
+        return [2*index, 2*index+1];
     });
     
     double_indices = double_indices.flat();

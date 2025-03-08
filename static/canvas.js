@@ -398,6 +398,7 @@ export function getMessage(event) {
 
     let messageFound = null;
     let msgPosX = 0, msgPosY = 0;
+    let msgUser = null;
     for (let i = 0; i < nb_stars; i++) {
         const dx = x - starPositions[2*i];
         const dy = y - starPositions[2*i + 1];
@@ -406,6 +407,7 @@ export function getMessage(event) {
             messageFound = starMessages[i];
             msgPosX = (starPositions[2*i] - (x_min + 0.5 * canvas.clientWidth * (1 - zoom)))/zoom;
             msgPosY = (starPositions[2*i+1] - (y_min + 0.5 * canvas.clientHeight * (1 - zoom)))/zoom;
+            msgUser = starUsername[i];
             break;
         }
     }
@@ -422,8 +424,9 @@ export function getMessage(event) {
         }, 200);
         return;
     }
+
     // Show star info near the star
-    infoElement.innerHTML = `<b>User</b><br><br>${messageFound}`;
+    infoElement.innerHTML = `<b>${msgUser}</b><br><br>${messageFound}`;
     infoElement.style.backgroundColor = "rgba(51, 51, 51, 0.95)";
     infoElement.style.top = (msgPosY) + "px";
     infoElement.style.left = (msgPosX + 20) + "px";

@@ -691,7 +691,6 @@ export async function fetchInitialStars() {
         starLastLikeTime.push(s.last_liked);
         starCreationDate.push(s.creation_date);
         starUserID.push(s.user_id);
-
       }
       updateStarPositionsBuffer();
       console.log("Loaded", nb_stars, "stars initially");

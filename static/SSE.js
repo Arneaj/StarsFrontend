@@ -6,6 +6,9 @@ import {
   starIDs,
   starPositions,
   starMessages,
+  starLastLikeTime,
+  starCreationDate,
+  starUserID,
   updateStarPositionsBuffer,
   isInViewport,
   RECONNECTION_TIMEOUT
@@ -52,7 +55,7 @@ export class StarStreamManager {
     }
 
     // Add the star with the backend-generated ID
-    const i = this._addStarMinimal(starData.id, starData.x, starData.y);
+    const i = this._addStarMinimal(starData);
 
     // Fetch the message if the star is in the viewport
     if (isInViewport(this.canvas, starData.x, starData.y)) {
@@ -60,12 +63,15 @@ export class StarStreamManager {
     }
   }
 
-  _addStarMinimal(id, x, y) {
+  _addStarMinimal(starData) {
     // For convenience, track the index of this star in the arrays
     // so we know where to put the message.
-    starIDs.push(id);
-    starPositions.push(x, y);
+    starIDs.push(starData.id);
+    starPositions.push(starData.x, starData.y);
     starMessages.push(null);  // We haven't fetched it yet
+    starLastLikeTime.push(starData.last_liked);
+    starCreationDate.push(starData.creation_date);
+    starUserID.push(starData.user_id);
     updateStarPositionsBuffer();
 
     // Return the index in starIDs/starPositions/starMessages
@@ -96,14 +102,20 @@ export class StarStreamManager {
     // fetchInitialStars returns an array of { id, x, y, message }
     const stars = await BackendCommunicator.fetchInitialStars();
     // Clear all local arrays
-    starIDs.length = 0;
+    starIDs.length       = 0;
     starPositions.length = 0;
-    starMessages.length = 0;
+    starMessages.length  = 0;
+    starLastLikeTime.length = 0;
+    starCreationDate.length = 0;
+    starUserID.length = 0;
 
     for (const s of stars) {
       starIDs.push(s.id);
       starPositions.push(s.x, s.y);
-      starMessages.push(s.message); // we already have the message
+      starMessages.push(s.message);
+      starLastLikeTime.push(s.last_liked);
+      starCreationDate.push(s.creation_date);
+      starUserID.push(s.user_id);
     }
     updateStarPositionsBuffer();
   }

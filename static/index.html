@@ -10,6 +10,18 @@
             background: #2a2a2a;
             overflow: hidden;
         }
+        #sound_toggle {
+          background-color: #444;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          padding: 10px;
+          cursor: pointer;
+          margin-right: 10px;
+        }
+        #sound_toggle:hover {
+          background-color: #555;
+        }
         #stars_canvas {
             width: 100%;
             height: 100%;
@@ -128,11 +140,39 @@
 </head>
 <body>
 
+    <!-- Add this right after the body tag -->
+    <div id="welcome-screen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #1a0416f5;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    ">
+        <h1 style="color: white; font-size: 2.5em; margin-bottom: 20px;">Welcome to Stars</h1>
+        <button id="enter-site" style="
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #4a1042;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        ">Enter Site</button>
+    </div>
+
     <!-- Controls Panel -->
     <div id="controls">
         <button id="add_random_star" class="button">Add Random Star</button>
         <button id="remove_star" class="button">Remove Star By ID</button>
         <button id="remove_all_stars" class="button">Remove All Stars</button>
+        <button id="sound_toggle" class="button">Disable Sound Effects</button>
     </div>
 
     <canvas id="stars_canvas"></canvas>
@@ -188,7 +228,24 @@
             mouseDown, mouseDownAndMove, zoomAction, stopOnMouseLeave
         } from "./canvas.js";
 
+        import { toggleSoundEffects, initializeAndStartAudio } from "./music.js";
+
         document.addEventListener("DOMContentLoaded", () => {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const enterButton = document.getElementById('enter-site');
+            
+            enterButton.addEventListener('click', () => {
+                // Initialize audio when user clicks
+                initializeAndStartAudio();
+                
+                // Hide welcome screen with fade out
+                welcomeScreen.style.transition = 'opacity 0.5s';
+                welcomeScreen.style.opacity = '0';
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                }, 500);
+            });
+
             // Initialize WebGL + SSE
             try {
                 starsGraphics();
@@ -218,6 +275,8 @@
             document.getElementById("add_random_star")?.addEventListener("click", addRandomStar);
             document.getElementById("remove_star")?.addEventListener("click", removeStarByIDPrompt);
             document.getElementById("remove_all_stars")?.addEventListener("click", removeAllStars);
+            document.getElementById("sound_toggle")?.addEventListener("click", toggleSoundEffects);
+
 
             // Auth modal open
             document.getElementById("auth-button")?.addEventListener("click", () => showModal('login-modal'));

@@ -17,6 +17,7 @@ import {
     nb_stars,
     starPositionsCPUBuffer,
     starLastLikeCPUBuffer,
+    starUserIDCPUBuffer,
     updateStarPositionsBuffer,
     x_min,
     y_min,
@@ -38,41 +39,6 @@ import { BackendCommunicator } from "./backend_communicator.js";
 import { StarStreamManager } from "./SSE.js";
 
 
-/***************************************************************************
- * WebGL Initialization and Rendering
- ***************************************************************************/
-// async function createStar(x, y, message) {
-//     // Example usage: createStar(0.25, -0.1, "Hello from canvas!");
-//     const body = { x, y, message };
-//     try {
-//         const resp = await fetch(`${BACKEND_URL}/stars`, {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify(body),
-//         });
-        
-//         if (!resp.ok) {
-//             console.error("Failed to create star:", resp.status, await resp.text());
-//             return;
-//         }
-
-//         // Parse the JSON response
-//         const responseData = await resp.json();
-
-//         // Check if the response contains a "status" field (from the filter service)
-//         if (responseData.status === false) {
-//             // If the filter says the message is bad
-//             alert(responseData.message);
-//             return;
-//         } else {
-//             const newStar = await resp.json();
-//             console.log("Created star:", newStar);
-//         }
-//     } catch (e) {
-//         console.error("Error creating star:", e);
-//     }
-// }
-
 function showError(errorText) {
     const errorBoxDiv = document.getElementById('error-box');
     if (!errorBoxDiv) {
@@ -84,76 +50,6 @@ function showError(errorText) {
     errorBoxDiv.appendChild(errorSpan);
     console.error(errorText);
 }
-
-// function showMessage(errorText) {
-//     // Create a new div for the error box
-//     const errorBox = document.createElement('div');
-//     errorBox.id = 'error-message-box';
-//     errorBox.innerText = errorText;
-
-//     // Style the error box
-//     errorBox.style.position = 'fixed';
-//     errorBox.style.top = '50%'; // Center vertically
-//     errorBox.style.left = '50%'; // Center horizontally
-//     errorBox.style.transform = 'translate(-50%, -50%)'; // Adjust for exact center
-//     errorBox.style.width = '50%'; // Set width
-//     errorBox.style.backgroundColor = '#ff0000'; // Red background
-//     errorBox.style.color = '#000000'; // Black text
-//     errorBox.style.padding = '20px'; // Add padding
-//     errorBox.style.borderRadius = '10px'; // Rounded corners
-//     errorBox.style.zIndex = '10000'; // Ensure it's on top
-//     errorBox.style.textAlign = 'center'; // Center text
-//     errorBox.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Add shadow
-//     errorBox.style.opacity = '1'; // Fully visible
-//     errorBox.style.transition = 'opacity 1s ease-out'; // Fade-out transition
-
-//     // Append the error box to the body
-//     document.body.appendChild(errorBox);
-
-//     // Set a timeout to fade out the error box
-//     setTimeout(() => {
-//         errorBox.style.opacity = '0';
-//         // Remove the error box from the DOM after the fade-out animation
-//         setTimeout(() => {
-//             document.body.removeChild(errorBox);
-//         }, 1000); // 1 second for the fade-out animation
-//     }, 3000); // 3 seconds before starting the fade-out
-// }
-
-// Function to create and display a banner that fades after 5 seconds
-// function showBanner(message) {
-//     // Create a div element for the banner
-//     const banner = document.createElement('div');
-
-//     // Style the banner
-//     banner.style.position = 'fixed';
-//     banner.style.top = '0';
-//     banner.style.left = '0';
-//     banner.style.width = '100%';
-//     banner.style.backgroundColor = '#ff4444'; // Bright red background
-//     banner.style.color = 'white'; // White text
-//     banner.style.textAlign = 'center';
-//     banner.style.padding = '15px';
-//     banner.style.fontFamily = 'Arial, sans-serif';
-//     banner.style.fontWeight = 'bold';
-//     banner.style.zIndex = '1000';
-//     banner.style.boxShadow = '0px 2px 10px rgba(0, 0, 0, 0.2)';
-//     banner.style.transition = 'opacity 1s ease'; // Smooth fade-out effect
-
-//     // Set the text content of the banner
-//     banner.textContent = message;
-
-//     // Append the banner to the body
-//     document.body.appendChild(banner);
-
-//     // Automatically fade out and remove the banner after 5 seconds
-//     setTimeout(() => {
-//         banner.style.opacity = '0'; // Start fading out
-//         setTimeout(() => {
-//             document.body.removeChild(banner); // Remove the banner after fading
-//         }, 1000); // Wait for the fade-out transition to complete
-//     }, 5000); // 5 seconds delay
-// }
 
 export async function starsGraphics() {
     const canvas = document.getElementById('stars_canvas');
@@ -201,6 +97,7 @@ export async function starsGraphics() {
     uniform int nb_stars;
     uniform vec2 star_positions[400];
     uniform float star_last_likes[200];
+    uniform int star_user_ids[200];
 
     uniform float current_time;
     uniform float smooth_current_time;
@@ -228,10 +125,21 @@ export async function starsGraphics() {
         vec2 uv_star_position;
         outputColor = vec4(0.0, 0.0, 0.0, 1.0);
 
+        int closest_star_user_id = -1;
+        float d_cursor_star_min = 100.0;
+
         for (int i = 0; i < nb_stars; i++) 
         {
             uv_star_position = star_positions[i];
             d = distance(uv_position, uv_star_position);
+
+            float d_cursor_star = distance(uv_cursor_position, uv_star_position);
+
+            if (d_cursor_star < d_cursor_star_min)
+            {
+                d_cursor_star_min = d_cursor_star;
+                closest_star_user_id = star_user_ids[i];
+            }
 
             delta_time = current_time - star_last_likes[i];
             time_falloff = clamp(1.0-delta_time*0.00001157407, 0.0, 1.0);  // disappears over 24h
@@ -247,6 +155,55 @@ export async function starsGraphics() {
 
         float d_from_cursor = max(1000.0, 1000.0 * distance(uv_cursor_position, uv_position));
         outputColor.xyz /= max(20000.0, pow(d_from_cursor, 1.0));
+
+        if (closest_star_user_id == -1) return;
+
+        int last_star_index;
+
+        for (int i = 0; i < nb_stars; i++)
+        {
+            if (star_user_ids[i] != closest_star_user_id) continue;
+
+            last_star_index = i;
+            break;
+        }
+
+        for (int i = last_star_index+1; i < nb_stars; i++)
+        {
+            if (star_user_ids[i] != closest_star_user_id) continue;
+
+            vec2 ray_vec = star_positions[i] - star_positions[last_star_index];
+            float ray_length = length(ray_vec);
+            vec2 ray_dir = ray_vec / ray_length;
+            vec2 ray_normal = vec2(-ray_dir.y, ray_dir.x);
+
+            float dist_n = dot(ray_normal, uv_position - star_positions[last_star_index]);
+
+            if (abs(dist_n) > 5.0) 
+            {
+                last_star_index = i;
+                continue;
+            }
+            
+            float dist_u = dot(ray_dir, uv_position - star_positions[last_star_index]);
+
+            if (dist_u > ray_length || dist_u < 0.0) 
+            {
+                last_star_index = i;
+                continue;
+            }
+
+            float n_offset = abs(dist_n)*0.2;
+            float u_offset = min(dist_u, ray_length - dist_u) / ray_length;
+
+            outputColor.xyz += (1.0 + 0.1 * sin(mod(10.0 * smooth_current_time, 6.28318530718)))
+                           * vec3(1.0, 0.9, 1.0)
+                           * pow((1.0 - n_offset - u_offset), 3.0)
+                           / max(0.5, pow(d_cursor_star_min*0.1, 1.8));
+
+            last_star_index = i;
+        }
+
     }`;
 
     // Compile vertex shader
@@ -293,6 +250,7 @@ export async function starsGraphics() {
     // Uniform locations
     const starUniform = gl.getUniformLocation(program, "star_positions");
     const starLastLikeUniform = gl.getUniformLocation(program, "star_last_likes");
+    const starUserIDUniform = gl.getUniformLocation(program, "star_user_ids");
 
     const timeUniform = gl.getUniformLocation(program, "current_time");
     const smoothTimeUniform = gl.getUniformLocation(program, "smooth_current_time");
@@ -362,6 +320,7 @@ export async function starsGraphics() {
 
         gl.uniform2fv(starUniform, starPositionsCPUBuffer);
         gl.uniform1fv(starLastLikeUniform, starLastLikeCPUBuffer);
+        gl.uniform1iv(starUserIDUniform, starUserIDCPUBuffer);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);

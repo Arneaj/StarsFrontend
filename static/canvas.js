@@ -684,7 +684,7 @@ function indexSort(refData) {
 
 function sortByCreationDate( list_of_lists_to_sort, star_creation_date)
 {
-    indices = indexSort(star_creation_date);
+    let indices = indexSort(star_creation_date);
 
     for (let i=0; i<list_of_lists_to_sort.length; i++)
     {

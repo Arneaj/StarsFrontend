@@ -40,6 +40,11 @@ export const total_map_pixels = 10000;
 export const MAX_STARS = 1000;
 export const RECONNECTION_TIMEOUT = 3000;
 
+export function updateLists(list_of_lists)
+{
+    [starIDs, starPositions, starMessages, starLastLikeTime, starUserID] = list_of_lists;
+}
+
 /**
  * Helper to update the Float32Array whenever starPositions changes.
  */

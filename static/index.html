@@ -57,8 +57,8 @@
             opacity: 0;
             padding: 1%;
             border-radius: 10px;
-            color: #cfbfced5;
-            background-color: #1a04167b;
+            color: #ffffff;
+            background-color: rgba(26, 26, 26, 0.8);
         }
         @keyframes smooth-appear {
             from { opacity: 0; } to { opacity: 1; }
@@ -66,7 +66,7 @@
         @keyframes smooth-disappear {
             from { opacity: 1; } to { opacity: 0; }
         }
-        .button, #sound_toggle, #auth-button, .modal button, #enter-site {
+        .button, #sound_toggle, #auth-button, .modal button, #enter-site, .message_input {
             background-color: #333333;
             color: #ffffff;
             border: none;
@@ -80,6 +80,8 @@
         }
         .message_input {
             width: 80%;
+            background-color: #262626;  /* Slightly darker background for input */
+            border: 1px solid #444;     /* Subtle border */
         }
         /* Controls panel */
         #controls {
@@ -144,19 +146,6 @@
             right: 10px;
             z-index: 9999;
         }
-        #enter-site {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(26, 26, 26, 0.96);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
         @keyframes fadeOut {
             from { opacity: 1;  }
             to { opacity: 0; }
@@ -182,9 +171,10 @@
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        cursor: pointer;
     ">
-        <h1 class="text-white text-4xl font-space mb-6">Welcome to Starboard</h1>
-        <button id="enter-site" class="font-space px-8 py-4 text-lg bg-[#4a1042] text-white rounded hover:bg-[#5a1252] transition-colors">Enter Site</button>
+        <h1 class="text-white text-4xl font-space mb-6">Welcome</h1>
+        <p class="text-gray-400 font-space">Click anywhere to enter</p>
     </div>
 
     <!-- Update controls buttons -->
@@ -252,9 +242,8 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const welcomeScreen = document.getElementById('welcome-screen');
-            const enterButton = document.getElementById('enter-site');
             
-            enterButton.addEventListener('click', () => {
+            welcomeScreen.addEventListener('click', () => {
                 // Initialize audio when user clicks
                 initializeAndStartAudio();
                 

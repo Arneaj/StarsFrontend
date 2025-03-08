@@ -56,7 +56,10 @@ function attachFormListeners() {
                     const data = await response.json();
                     localStorage.setItem("token", data.access_token);
                     alert("Login successful!");
-                    hideModals();
+                    // Make sure all modals are hidden
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
                 } else {
                     const errorText = await response.text();
                     alert(`Login failed! Error: ${errorText}`);
@@ -87,7 +90,10 @@ function attachFormListeners() {
 
                 if (response.ok) {
                     alert("Registration successful! You can now log in.");
-                    showModal('login-modal');
+                    // Just close all modals
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        modal.style.display = 'none';
+                    });
                 } else {
                     const errorData = await response.json();
                     alert(`Registration failed: ${errorData.detail || "Unknown error"}`);

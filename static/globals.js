@@ -3,19 +3,22 @@
 export let starIDs = [];        // starIDs[i] => star's integer ID
 export let starPositions = [];  // starPositions[2*i], starPositions[2*i + 1] => star's X & Y
 export let starMessages = [];   // starMessages[i] => string or null
-export let starLastLikeTime = [
-    Date.now() * 0.001 - 1735689600 - 10,  // some star added 10s ago
-    Date.now() * 0.001 - 1735689600 - 3600,  // some star added 1h ago
-    Date.now() * 0.001 - 1735689600 - 6*3600,  // some star added 6h ago
-    Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 12h ago
-    Date.now() * 0.001 - 1735689600 - 18*3600,  // some star added 18 ago
-    Date.now() * 0.001 - 1735689600 - 24*3600,  // some star added 24h ago
-    Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 24h ago
-    Date.now() * 0.001 - 1735689600 - 12*3600  // some star added 24h ago
-];  // starCreationTime[i] => star's UNIX time of last like or creation.
-// TEMPORARY initialising the stars with fixed values, only 6 for now
-export const starUserID = [0, 1, 0, 1, 1, 2, 0, 1];
+// export let starLastLikeTime = [
+//     Date.now() * 0.001 - 1735689600 - 10,  // some star added 10s ago
+//     Date.now() * 0.001 - 1735689600 - 3600,  // some star added 1h ago
+//     Date.now() * 0.001 - 1735689600 - 6*3600,  // some star added 6h ago
+//     Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 12h ago
+//     Date.now() * 0.001 - 1735689600 - 18*3600,  // some star added 18 ago
+//     Date.now() * 0.001 - 1735689600 - 24*3600,  // some star added 24h ago
+//     Date.now() * 0.001 - 1735689600 - 12*3600,  // some star added 24h ago
+//     Date.now() * 0.001 - 1735689600 - 12*3600  // some star added 24h ago
+// ];  // starCreationTime[i] => star's UNIX time of last like or creation.
+// // TEMPORARY initialising the stars with fixed values, only 6 for now
+export let starLastLikeTime = [];
+export let starUserID = [];
+// export const starUserID = [0, 1, 0, 1, 1, 2, 0, 1];
 export let nb_stars = 0;
+export let starCreationDate = [];
 
 export let starPositionsCPUBuffer = new Float32Array(starPositions);
 export let starLastLikeCPUBuffer = new Float32Array(starLastLikeTime);
@@ -73,12 +76,3 @@ export function update_nb_stars(newNbStars) {
 export function update_zoom(new_zoom) {
     zoom = new_zoom;
 }
-
-/*
-zoomed_x_min    = 0.5*x_span + x_min + x_min*zoom - (0.5*x_span + x_min)*zoom
-                = x_min + 0.5 * x_span * (1 - zoom)
-
-zoomed_x_span   = x_span * zoom;
-
-
-*/

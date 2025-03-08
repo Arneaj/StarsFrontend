@@ -48,7 +48,10 @@ function attachFormListeners() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("DEBUG", data);
                     localStorage.setItem("token", data.access_token);
+                    localStorage.setItem("userId", data.user_id);
+                    console.log("DEBUG WAHOO", data.access_token, data.user_id);
                     alert("Login successful!");
                     hideModals();
                 } else {

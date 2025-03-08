@@ -1,3 +1,5 @@
+// canvas
+
 /***************************************************************************
  * Global variables
  ***************************************************************************/
@@ -14,6 +16,9 @@ import {
     starIDs,
     starPositions,
     starMessages,
+    starLastLikeTime,
+    starCreationDate,
+    starUserID,
     nb_stars,
     starPositionsCPUBuffer,
     starLastLikeCPUBuffer,
@@ -246,6 +251,14 @@ export async function starsGraphics() {
     gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
 
     update_nb_stars(starPositions.length / 2);
+
+    console.log(starPositions);
+    console.log(starLastLikeTime);
+    console.log(starUserID);
+    console.log(starMessages);
+    
+    
+    
 
     // Uniform locations
     const starUniform = gl.getUniformLocation(program, "star_positions");
@@ -665,11 +678,18 @@ export async function fetchInitialStars() {
       starIDs.length       = 0;
       starPositions.length = 0;
       starMessages.length  = 0;
+      starLastLikeTime.length = 0;
+      starCreationDate.length = 0;
+      starUserID.length = 0;
 
       for (const s of stars) {
         starIDs.push(s.id);
         starPositions.push(s.x, s.y);
         starMessages.push(s.message);
+        starLastLikeTime.push(s.last_liked);
+        starCreationDate.push(s.creation_date);
+        starUserID.push(s.user_id);
+
       }
       updateStarPositionsBuffer();
       console.log("Loaded", nb_stars, "stars initially");

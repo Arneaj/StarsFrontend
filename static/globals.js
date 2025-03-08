@@ -42,7 +42,7 @@ export const RECONNECTION_TIMEOUT = 3000;
 
 export function updateLists(list_of_lists)
 {
-    [starIDs, starPositions, starMessages, starLastLikeTime, starUserID] = list_of_lists;
+    [starIDs, starMessages, starLastLikeTime, starUserID, starPositions] = list_of_lists;
 }
 
 /**

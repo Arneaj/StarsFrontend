@@ -683,9 +683,15 @@ function indexSort(refData) {
 }
 
 
-function sortByCreationDate( list_of_lists_to_sort, star_creation_date)
+function sortByCreationDate( list_of_lists_to_sort, list_of_pos, star_creation_date)
 {
     let indices = indexSort(star_creation_date);
+
+    let double_indices = indices.map(function(index) {
+        return [index, index];
+    });
+    
+    double_indices = double_indices.flat();
 
     for (let i=0; i<list_of_lists_to_sort.length; i++)
     {
@@ -694,7 +700,11 @@ function sortByCreationDate( list_of_lists_to_sort, star_creation_date)
         });
     }
 
-    return list_of_lists_to_sort;
+    list_of_pos = double_indices.map(function(index) {
+        return list_of_pos[index];
+    });         
+
+    return list_of_lists_to_sort.concat([list_of_pos]);
 }
 
 
@@ -723,7 +733,8 @@ export async function fetchInitialStars() {
 
         updateLists(
             sortByCreationDate(
-                [starIDs, starPositions, starMessages, starLastLikeTime, starUserID], 
+                [starIDs, starMessages, starLastLikeTime, starUserID], 
+                starPositions,
                 starCreationDate
             )
         )

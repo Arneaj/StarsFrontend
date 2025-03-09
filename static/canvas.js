@@ -385,6 +385,8 @@ const throttle_delay = 100;
 
 var starPopupOpen = false;  // tracks if our "add star" or "star info" box is open
 
+let last_hovered_star_id;
+
 export function getMessage(event) {
     if (starPopupOpen) return;
 
@@ -403,11 +405,13 @@ export function getMessage(event) {
     let messageFound = null;
     let msgPosX = 0, msgPosY = 0;
     let msgUser = null;
+    
     for (let i = 0; i < nb_stars; i++) {
         const dx = x - starPositions[2*i];
         const dy = y - starPositions[2*i + 1];
         if (dx*dx + dy*dy < 1000) {
             // Found a star
+            last_hovered_star_id = starIDs[i];
             messageFound = starMessages[i];
             msgPosX = (starPositions[2*i] - (x_min + 0.5 * canvas.clientWidth * (1 - zoom)))/zoom;
             msgPosY = (starPositions[2*i+1] - (y_min + 0.5 * canvas.clientHeight * (1 - zoom)))/zoom;
@@ -651,8 +655,8 @@ export async function submitMessage(event) {
 /**
  * Called when the user presses Like in the star box
  */
-export async function likeMessage(event) { // TODO
-    const likeBtn = document.getElementById('like_button');
+export async function likeMessage(event) {
+    await BackendCommunicator.likeStar(last_hovered_star_id);
     
     // Play the octave note if sound effects are enabled
     if (soundEffectsEnabled) {
@@ -662,6 +666,8 @@ export async function likeMessage(event) { // TODO
             removeOctaveNote();
         }, 2000);
     }
+
+    await closeStarPopup(event);
 }
 
 /**

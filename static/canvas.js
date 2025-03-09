@@ -354,7 +354,7 @@ export async function starsGraphics() {
  */
 async function checkMissingMessages(canvas) {
     for (let i = 0; i < nb_stars; i++) {
-        if (starMessages[i] === null) {
+        if (starMessages[i] === null || starUsername[i] === null) {   
             const sx = starPositions[2*i];
             const sy = starPositions[2*i + 1];
 
@@ -364,7 +364,10 @@ async function checkMissingMessages(canvas) {
                 try {
                     const fullStar = await BackendCommunicator.fetchStarDetails(starId);
                     if (fullStar && typeof fullStar.message === 'string') {
+                        console.log("Fetched star message:", fullStar.message);
+                        console.log("Fetched star username:", fullStar.username);
                         starMessages[i] = fullStar.message;
+                        starUsername[i] = fullStar.username;
                     }
                 } catch(e) {
                     console.error("Error fetching star message for ID=", starId, e);

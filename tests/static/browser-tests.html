@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static Files Browser Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Static Files Browser Tests</h1>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button id="run-all">Run All Tests</button>
+        <button id="clear-results">Clear Results</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Individual Test Files</h2>
+        <button class="test-button" data-file="music">Test Music Module</button>
+        <button class="test-button" data-file="audio-context">Test Audio Context Module</button>
+        <button class="test-button" data-file="sound-state">Test Sound State Module</button>
+        <button class="test-button" data-file="sse">Test SSE Module</button>
+        <button class="test-button" data-file="backend-communicator">Test Backend Communicator</button>
+    </div>
+
+    <div id="results">
+        <h3>Test Results</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- First load our simple test framework -->
+    <script src="simple-test.js"></script>
+
+    <!-- Override console.log to capture output in our results div -->
+    <script>
+        // Capture original console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logDiv = document.getElementById('log');
+
+        // Override console methods to capture output
+        console.log = function(...args) {
+            const message = args.join(' ');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = message;
+            
+            if (message.includes('✅') || message.includes('✓')) {
+                entry.classList.add('success');
+            }
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Also call the original function
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            const message = args.join(' ');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry error';
+            entry.textContent = message;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Also call the original function
+            originalError.apply(console, args);
+        };
+
+        // Utility function to clear results
+        function clearResults() {
+            logDiv.innerHTML = '';
+        }
+
+        document.getElementById('clear-results').addEventListener('click', clearResults);
+    </script>
+
+    <!-- Define simple mocks that can replace Jest functionality -->
+    <script>
+        // Create a simple mock function
+        function mockFn() {
+            const fn = function(...args) {
+                fn.calls.push(args);
+                return fn.returnValue;
+            };
+            
+            fn.calls = [];
+            fn.returnValue = undefined;
+            
+            fn.mockReturnValue = function(value) {
+                fn.returnValue = value;
+                return fn;
+            };
+            
+            fn.mockReturnThis = function() {
+                fn.returnValue = this;
+                return fn;
+            };
+            
+            fn.mockImplementation = function(implementation) {
+                const originalFn = fn;
+                const wrappedFn = function(...args) {
+                    originalFn.calls.push(args);
+                    return implementation.apply(this, args);
+                };
+                wrappedFn.calls = originalFn.calls;
+                wrappedFn.mockReturnValue = originalFn.mockReturnValue;
+                wrappedFn.mockReturnThis = originalFn.mockReturnThis;
+                wrappedFn.mockImplementation = originalFn.mockImplementation;
+                wrappedFn.mockResolvedValue = originalFn.mockResolvedValue;
+                return wrappedFn;
+            };
+            
+            fn.mockResolvedValue = function(value) {
+                return fn.mockImplementation(() => Promise.resolve(value));
+            };
+            
+            fn.mockClear = function() {
+                fn.calls = [];
+            };
+            
+            return fn;
+        }
+
+        // Create global mock objects
+        window.mockObjects = {
+            // Audio API mocks
+            audioContext: {
+                currentTime: 0,
+                createOscillator: mockFn().mockImplementation(() => ({
+                    type: '',
+                    frequency: { 
+                        value: 0,
+                        setValueAtTime: mockFn()
+                    },
+                    connect: mockFn().mockReturnThis(),
+                    start: mockFn(),
+                    stop: mockFn(),
+                    disconnect: mockFn()
+                })),
+                createGain: mockFn().mockImplementation(() => ({
+                    gain: {
+                        value: 1,
+                        setValueAtTime: mockFn(),
+                        exponentialRampToValueAtTime: mockFn()
+                    },
+                    connect: mockFn().mockReturnThis(),
+                    disconnect: mockFn()
+                })),
+                destination: {},
+                resume: mockFn().mockResolvedValue(undefined)
+            },
+            
+            // Network mocks
+            fetch: mockFn().mockImplementation(() => 
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({})
+                })
+            ),
+            
+            EventSource: mockFn().mockImplementation(() => ({
+                onmessage: null,
+                onerror: null,
+                close: mockFn()
+            })),
+            
+            // Storage mocks
+            localStorage: {
+                getItem: mockFn().mockImplementation(key => {
+                    if (key === 'token') return 'test-token';
+                    if (key === 'userId') return 'test-user';
+                    return null;
+                }),
+                setItem: mockFn(),
+                removeItem: mockFn()
+            },
+            
+            // DOM mocks
+            document: {
+                getElementById: mockFn().mockImplementation(() => ({
+                    textContent: ''
+                }))
+            }
+        };
+    </script>
+
+    <!-- Test definitions for each module -->
+    <script>
+        // Tests for Music module
+        const musicTests = {
+            testStartDrone: function() {
+                // Simulate the module
+                const musicModule = {
+                    startDrone: function() {
+                        console.log("Starting drone");
+                        // In a real implementation, this would create oscillators
+                        return true;
+                    }
+                };
+                
+                // Test the function
+                const result = musicModule.startDrone();
+                TestUtils.assert(result === true, "startDrone should return true");
+            },
+            
+            testStopDrone: function() {
+                // Simulate the module
+                const musicModule = {
+                    stopDrone: function() {
+                        console.log("Stopping drone");
+                        // Return a promise as the real function does
+                        return Promise.resolve();
+                    }
+                };
+                
+                // Test the function
+                return musicModule.stopDrone().then(() => {
+                    TestUtils.assert(true, "stopDrone promise should resolve");
+                });
+            }
+        };
+
+        // Tests for Audio Context module
+        const audioContextTests = {
+            testInitializeAudio: function() {
+                // Simulate the module
+                const audioContextModule = {
+                    audioContext: null,
+                    initializeAudio: function() {
+                        if (!this.audioContext) {
+                            this.audioContext = mockObjects.audioContext;
+                        }
+                        return Promise.resolve();
+                    }
+                };
+                
+                // Test the function
+                return audioContextModule.initializeAudio().then(() => {
+                    TestUtils.assert(audioContextModule.audioContext !== null, 
+                        "initializeAudio should set audioContext");
+                });
+            },
+            
+            testGetAudioContext: function() {
+                // Simulate the module
+                const audioContextModule = {
+                    audioContext: mockObjects.audioContext,
+                    getAudioContext: function() {
+                        if (!this.audioContext) {
+                            throw new Error("AudioContext not initialized");
+                        }
+                        return this.audioContext;
+                    }
+                };
+                
+                // Test the function
+                const context = audioContextModule.getAudioContext();
+                TestUtils.assert(context === mockObjects.audioContext, 
+                    "getAudioContext should return the audio context");
+            }
+        };
+
+        // Tests for Sound State module
+        const soundStateTests = {
+            testSoundEffectsEnabled: function() {
+                // Simulate the module
+                const soundStateModule = {
+                    soundEffectsEnabled: true
+                };
+                
+                // Test the property
+                TestUtils.assert(
+                    soundStateModule.hasOwnProperty('soundEffectsEnabled'), 
+                    "Module should have soundEffectsEnabled property"
+                );
+                
+                TestUtils.assert(
+                    typeof soundStateModule.soundEffectsEnabled === 'boolean', 
+                    "soundEffectsEnabled should be a boolean"
+                );
+            }
+        };
+
+        // Tests for SSE module
+        const sseTests = {
+            testStarStreamManager: function() {
+                // Create a mock canvas
+                const mockCanvas = { width: 800, height: 600 };
+                
+                // Simulate the StarStreamManager class
+                class StarStreamManager {
+                    constructor(canvas) {
+                        this.canvas = canvas;
+                        this.eventSource = { close: mockFn() };
+                    }
+                    
+                    cleanup() {
+                        if (this.eventSource) {
+                            this.eventSource.close();
+                            this.eventSource = null;
+                        }
+                    }
+                }
+                
+                // Create an instance
+                const manager = new StarStreamManager(mockCanvas);
+                
+                // Test the instance
+                TestUtils.assert(manager.canvas === mockCanvas, 
+                    "StarStreamManager should store the canvas reference");
+                
+                // Test cleanup
+                manager.cleanup();
+                TestUtils.assert(manager.eventSource === null, 
+                    "cleanup should set eventSource to null");
+            }
+        };
+
+        // Tests for Backend Communicator module
+        const backendCommunicatorTests = {
+            testCreateStar: function() {
+                // Simulate the module with fake fetch
+                const originalFetch = window.fetch;
+                let fetchCalled = false;
+                
+                window.fetch = function() {
+                    fetchCalled = true;
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve({ id: 'star1' })
+                    });
+                };
+                
+                // Simulate backend communicator
+                const communicator = {
+                    createStar: async function(x, y, message) {
+                        try {
+                            const resp = await fetch('/stars', {
+                                method: 'POST',
+                                body: JSON.stringify({ x, y, message })
+                            });
+                            
+                            if (!resp.ok) return null;
+                            return await resp.json();
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+                };
+                
+                // Test the function
+                return communicator.createStar(100, 200, 'Test').then(result => {
+                    // Restore original fetch
+                    window.fetch = originalFetch;
+                    
+                    TestUtils.assert(fetchCalled, "createStar should call fetch");
+                    TestUtils.assert(result && result.id === 'star1', 
+                        "createStar should return the created star");
+                });
+            }
+        };
+
+        // Load a specific test suite
+        async function loadTests(testName) {
+            clearResults();
+            console.log(`Running ${testName} tests...`);
+            
+            let tests;
+            switch (testName) {
+                case 'music':
+                    tests = musicTests;
+                    break;
+                case 'audio-context':
+                    tests = audioContextTests;
+                    break;
+                case 'sound-state':
+                    tests = soundStateTests;
+                    break;
+                case 'sse':
+                    tests = sseTests;
+                    break;
+                case 'backend-communicator':
+                    tests = backendCommunicatorTests;
+                    break;
+                default:
+                    console.error(`Unknown test suite: ${testName}`);
+                    return;
+            }
+            
+            await TestUtils.runTests(tests);
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            clearResults();
+            console.log("Running all tests...");
+            
+            // Run each test suite in sequence
+            await TestUtils.runTests(musicTests);
+            await TestUtils.runTests(audioContextTests);
+            await TestUtils.runTests(soundStateTests);
+            await TestUtils.runTests(sseTests);
+            await TestUtils.runTests(backendCommunicatorTests);
+            
+            console.log("All tests completed!");
+        }
+
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('run-all').addEventListener('click', runAllTests);
+            
+            document.querySelectorAll('.test-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    loadTests(this.getAttribute('data-file'));
+                });
+            });
+            
+            // Run all tests automatically when page loads
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html> 

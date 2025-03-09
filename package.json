@@ -1,0 +1,41 @@
+{
+  "name": "astro-app-sse-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the Astro App with SSE support",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/run-browser-tests-core.js",
+    "test:full": "node tests/run-browser-tests.js",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "sse",
+    "frontend",
+    "testing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "babel-jest": "^29.6.1",
+    "jest": "^29.6.1",
+    "jest-environment-jsdom": "^29.6.1",
+    "puppeteer-core": "^21.10.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  }
+} 

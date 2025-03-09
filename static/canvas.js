@@ -364,8 +364,6 @@ async function checkMissingMessages(canvas) {
                 try {
                     const fullStar = await BackendCommunicator.fetchStarDetails(starId);
                     if (fullStar && typeof fullStar.message === 'string') {
-                        console.log("Fetched star message:", fullStar.message);
-                        console.log("Fetched star username:", fullStar.username);
                         starMessages[i] = fullStar.message;
                         starUsername[i] = fullStar.username;
                     }
@@ -675,7 +673,7 @@ export async function likeMessage(event) {
 /**
  * Called when the user presses Dislike in the star box
  */
-export async function dislikeMessage(event) {
+export async function dislikeMessage(event) { // TODO
     const dislikeBtn = document.getElementById('dislike_button');
 }
 

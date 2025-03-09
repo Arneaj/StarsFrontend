@@ -291,6 +291,9 @@ export async function starsGraphics() {
         cursorY = e.clientY;
     });  
 
+    console.log(starUsername);
+    
+
     // Throttling the "fetch missing messages" check
     let lastViewportCheckTime = 0;
     function drawFrame() {  

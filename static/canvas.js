@@ -667,6 +667,7 @@ export async function likeMessage(event) {
         }, 2000);
     }
 
+    updateStarPositionsBuffer();
     await closeStarPopup(event);
 }
 
@@ -675,6 +676,7 @@ export async function likeMessage(event) {
  */
 export async function dislikeMessage(event) { // TODO
     await BackendCommunicator.dislikeStar(last_hovered_star_id);
+    updateStarPositionsBuffer();
     await closeStarPopup(event);
 }
 

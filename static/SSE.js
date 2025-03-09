@@ -36,6 +36,8 @@ export class StarStreamManager {
           this._handleAddEvent(parsed.data);    // Use parsed.data
         } else if (parsed.type === 'delete') {
           this._handleStarRemoval(parsed.data?.id);
+        } else if (parsed.type === 'update') {
+          this._handleLikeUpdate(parsed.data);
         }
       } catch (error) {
         console.error("Failed to parse SSE message:", error, "Received:", event.data);
@@ -62,6 +64,21 @@ export class StarStreamManager {
     if (isInViewport(this.canvas, starData.x, starData.y)) {
         this._fetchStarMessage(i, starData.id);
     }
+  }
+
+  _handleLikeUpdate(starData) {
+    if (!starData || typeof starData.last_liked !== 'number' || !starData.id) {
+      console.warn("Malformed star SSE event:", starData);
+      return;
+    }
+    
+    // TODO UPDATE THE LAST LIKE TIME
+    const i = starIDs.indexOf(starData.id);
+    if (i === -1) {
+      console.warn("Received like update for unknown star:", starData.id);
+      return;
+    }
+    starLastLikeTime[i] = starData.last_liked;
   }
 
   _addStarMinimal(starData) {

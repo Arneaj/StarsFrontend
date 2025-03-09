@@ -674,7 +674,8 @@ export async function likeMessage(event) {
  * Called when the user presses Dislike in the star box
  */
 export async function dislikeMessage(event) { // TODO
-    const dislikeBtn = document.getElementById('dislike_button');
+    await BackendCommunicator.dislikeStar(last_hovered_star_id);
+    await closeStarPopup(event);
 }
 
 

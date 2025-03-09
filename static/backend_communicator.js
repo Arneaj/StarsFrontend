@@ -64,6 +64,22 @@ export class BackendCommunicator {
     }
   }
 
+  static async dislikeStar(starId) {
+    const token = localStorage.getItem('token');
+    try {
+      const resp = await fetch(`${APPLICATION_URL}/stars/${starId}/dislike`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return await this._handleResponse(resp);
+    } catch (e) {
+      console.error("Error liking star:", e);
+      return null;
+    }
+  }
+
   static async removeStarByID(starId) {
     try {
       const resp = await fetch(`${APPLICATION_URL}/stars/${starId}`, {

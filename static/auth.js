@@ -1,6 +1,7 @@
 // auth.js
 
-const AUTH_URL = "http://127.0.0.1:5001";
+// const AUTH_URL = "http://127.0.0.1:5001";
+const AUTH_URL = "https://authentication.delightfulwater-b24a63e0.uksouth.azurecontainerapps.io";
 
 // Make modal functions available globally
 window.showModal = function(modalId) {
@@ -39,8 +40,6 @@ function attachFormListeners() {
             
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-
-            localStorage.setItem("username", email);
 
             if (!email || !password) {
                 alert("Email and password are required!");

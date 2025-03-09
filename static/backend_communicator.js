@@ -2,7 +2,8 @@
  * Backend Communicator - Handles all backend communication logic
  ***************************************************************************/
 
-const APPLICATION_URL = "http://127.0.0.1:7999";
+// const APPLICATION_URL = "http://127.0.0.1:7999";
+const APPLICATION_URL = "https://python-interface.delightfulwater-b24a63e0.uksouth.azurecontainerapps.io";
 const RECONNECTION_TIMEOUT = 3000;
 
 export class BackendCommunicator {

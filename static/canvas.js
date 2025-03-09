@@ -364,8 +364,6 @@ async function checkMissingMessages(canvas) {
                 try {
                     const fullStar = await BackendCommunicator.fetchStarDetails(starId);
                     if (fullStar && typeof fullStar.message === 'string') {
-                        console.log("Fetched star message:", fullStar.message);
-                        console.log("Fetched star username:", fullStar.username);
                         starMessages[i] = fullStar.message;
                         starUsername[i] = fullStar.username;
                     }
@@ -653,7 +651,7 @@ export async function submitMessage(event) {
 /**
  * Called when the user presses Like in the star box
  */
-export async function likeMessage(event) {
+export async function likeMessage(event) { // TODO
     const likeBtn = document.getElementById('like_button');
     
     // Play the octave note if sound effects are enabled
@@ -669,7 +667,7 @@ export async function likeMessage(event) {
 /**
  * Called when the user presses Dislike in the star box
  */
-export async function dislikeMessage(event) {
+export async function dislikeMessage(event) { // TODO
     const dislikeBtn = document.getElementById('dislike_button');
 }
 

@@ -138,7 +138,7 @@ export async function starsGraphics() {
         for (int i = 0; i < nb_stars; i++) 
         {
             uv_star_position = star_positions[i];
-            d = distance(uv_position, uv_star_position);
+            d = max(0.1, distance(uv_position, uv_star_position));
 
             float d_cursor_star = distance(uv_cursor_position, uv_star_position);
 
@@ -180,7 +180,8 @@ export async function starsGraphics() {
             if (star_user_ids[i] != closest_star_user_id) continue;
 
             vec2 ray_vec = star_positions[i] - star_positions[last_star_index];
-            float ray_length = length(ray_vec);
+            float ray_length = max(0.1, length(ray_vec));
+
             vec2 ray_dir = ray_vec / ray_length;
             vec2 ray_normal = vec2(-ray_dir.y, ray_dir.x);
 
@@ -194,7 +195,7 @@ export async function starsGraphics() {
             
             float dist_u = dot(ray_dir, uv_position - star_positions[last_star_index]);
 
-            if (dist_u > ray_length || dist_u < 0.0) 
+            if (dist_u > ray_length || dist_u <= 0.0) 
             {
                 last_star_index = i;
                 continue;
@@ -448,7 +449,7 @@ export function getMessage(event) {
     console.log("starUserID", starUserID);
     console.log("starUserIDCPUBuffer", starUserIDCPUBuffer);
     console.log("starPositionsCPUBuffer", starPositionsCPUBuffer);
-    
+    console.log("nb_stars", nb_stars);
     
 }
 

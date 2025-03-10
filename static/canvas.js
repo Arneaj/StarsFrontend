@@ -424,7 +424,7 @@ export function getMessage(event) {
         // Hide star info if no star is near cursor
         infoElement.style.animation = "0.2s smooth-disappear ease-out";
         infoElement.style.opacity = "0";
-        infoElement.style.width = "10%";
+        infoElement.style.width = "200px";
         setTimeout(() => {
             if (infoElement.style.opacity === "0") {
                 infoElement.style.visibility = "hidden";
@@ -438,7 +438,7 @@ export function getMessage(event) {
     infoElement.style.backgroundColor = "rgba(51, 51, 51, 0.95)";
     infoElement.style.top = (msgPosY) + "px";
     infoElement.style.left = (msgPosX + 20) + "px";
-    infoElement.style.width = "10%";
+    infoElement.style.width = "200px";
     infoElement.style.visibility = "visible";
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";

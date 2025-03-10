@@ -775,30 +775,30 @@ export async function fetchInitialStars() {
 /***************************************************************************
  * Debug buttons
  ***************************************************************************/
-export function addRandomStar() {
-    const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
-    const ry = (Math.random() * 2 - 1).toFixed(2);
-    const msg = `Random star #${Math.floor(Math.random()*1000)}`;
-    BackendCommunicator.createStar(Number(rx), Number(ry), msg);
-}
+// export function addRandomStar() {
+//     const rx = (Math.random() * 2 - 1).toFixed(2);  // random in [-1, 1]
+//     const ry = (Math.random() * 2 - 1).toFixed(2);
+//     const msg = `Random star #${Math.floor(Math.random()*1000)}`;
+//     BackendCommunicator.createStar(Number(rx), Number(ry), msg);
+// }
 
-export async function removeStarByIDPrompt() {
-    const idStr = prompt("Enter star ID to remove:");
-    if (!idStr) return;
-    const starID = parseInt(idStr, 10);
-    if (!Number.isFinite(starID)) {
-        console.error("Invalid ID:", idStr);
-        return;
-    }
-    await BackendCommunicator.removeStarByID(starID);
-}
+// export async function removeStarByIDPrompt() {
+//     const idStr = prompt("Enter star ID to remove:");
+//     if (!idStr) return;
+//     const starID = parseInt(idStr, 10);
+//     if (!Number.isFinite(starID)) {
+//         console.error("Invalid ID:", idStr);
+//         return;
+//     }
+//     await BackendCommunicator.removeStarByID(starID);
+// }
 
-export async function removeAllStars() {
-    await BackendCommunicator.removeAllStars();
-    starPositions.length = 0;
-    starMessages.length = 0;
-    updateStarPositionsBuffer();
-}
+// export async function removeAllStars() {
+//     await BackendCommunicator.removeAllStars();
+//     starPositions.length = 0;
+//     starMessages.length = 0;
+//     updateStarPositionsBuffer();
+// }
 
 export function toggleSoundEffects() {
     soundEffectsEnabled = !soundEffectsEnabled;

@@ -64,6 +64,7 @@ function attachFormListeners() {
                     document.querySelectorAll('.modal').forEach(modal => {
                         modal.style.display = 'none';
                     });
+                    updateAuthUI();
                 } else {
                     const errorText = await response.text();
                     alert(`Login failed! Error: ${errorText}`);
@@ -107,6 +108,38 @@ function attachFormListeners() {
                 alert("Registration failed due to a network error.");
             }
         });
+    }
+
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function () {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            localStorage.removeItem("username");
+            alert("Logged out successfully!");
+            updateAuthUI(); // Update UI after logout
+        });
+    }
+
+    // Call updateAuthUI on page load to set the initial state
+    document.addEventListener('DOMContentLoaded', updateAuthUI);
+
+
+}
+
+function updateAuthUI() {
+    const authButton = document.getElementById('auth-button');
+    const logoutButton = document.getElementById('logout-button');
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        // User is logged in
+        authButton.style.display = 'none';
+        logoutButton.style.display = 'block';
+    } else {
+        // User is logged out
+        authButton.style.display = 'block';
+        logoutButton.style.display = 'none';
     }
 }
 

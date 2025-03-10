@@ -154,6 +154,23 @@
         #error-message-box {
             animation: fadeOut 1s ease-out 3s forwards;
         }
+        #logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #logout-button:hover {
+            background-color: #444444;
+        }
     </style>
 </head>
 <body>
@@ -196,6 +213,8 @@
 
     <!-- Update auth button -->
     <button id="auth-button" class="font-space">Login/Register to Add Stars</button>
+    <!-- Add this logout button next to the auth-button -->
+    <button id="logout-button" class="font-space" style="display: none;">Logout</button>
 
     <!-- Update modals -->
     <div id="auth-modals" class="font-space">

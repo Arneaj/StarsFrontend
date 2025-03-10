@@ -442,6 +442,14 @@ export function getMessage(event) {
     infoElement.style.visibility = "visible";
     infoElement.style.animation = "0.2s smooth-appear ease-in";
     infoElement.style.opacity = "1";
+
+    console.log("starLastLikeTime", starLastLikeTime);
+    console.log("starLastLikeCPUBuffer", starLastLikeCPUBuffer);
+    console.log("starUserID", starUserID);
+    console.log("starUserIDCPUBuffer", starUserIDCPUBuffer);
+    console.log("starPositionsCPUBuffer", starPositionsCPUBuffer);
+    
+    
 }
 
 // Variables for panning

@@ -649,6 +649,15 @@ export async function submitMessage(event) {
     const message = msgInput ? msgInput.value : "";
     await BackendCommunicator.createStar(last_clicked_x, last_clicked_y, message);
     
+    // Play the octave note if sound effects are enabled
+    if (soundEffectsEnabled) {
+        addOctaveNote();
+        // Remove the note after 2 seconds
+        setTimeout(() => {
+            removeOctaveNote();
+        }, 2000);
+    }
+    
     await closeStarPopup(event);
 }
 
